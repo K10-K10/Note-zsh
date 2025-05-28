@@ -1,0 +1,27 @@
+#!/bin/zsh
+
+
+setopt KSH_ARRAYS
+NOTES_FILE="$(dirname "$0")/note.txt"
+
+if [[ "$1" == "list" ]]; then
+  if [[ -f "$NOTES_FILE" ]]; then
+    line=$(wc -l < "$NOTES_FILE")
+    line2=$((line/2))
+    for i in $(seq 1 $line2); do
+      note=$(sed -n "${i}p" "$NOTES_FILE") # TODO: Output the note in a single line
+      echo -n "$(((i - 1) * 2)): $note  "
+    done
+    echo
+  else
+    echo "No notes yet."
+  fi
+fi
+
+if [[ "$1" == "add" ]]; then
+  if [[ -z "$2" ]]; then
+    exit 1
+  fi
+  echo "$2" >> "$NOTES_FILE"
+  echo "Note added: $2"
+fi
