@@ -1,4 +1,5 @@
-#!/bin/zsh
+#!/usr/bin/zsh
+
 
 
 setopt KSH_ARRAYS
