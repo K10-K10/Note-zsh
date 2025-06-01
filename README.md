@@ -28,11 +28,31 @@ note list
 ```
 
 ## Commands
-| Command                        | Description                                       |
-| ------------------------------ | ------------------------------------------------- |
-| note list                      | List all saved notes                              |
-| note add \<Title> \<Note body> | Add a new note.You can select the empty note body |
-| note del \<number>             | Delete note by number                             |
-| note del all                   | Delete all notes (with confirm)                   |
-| note help                      | Show help message                                 |
+| Command                        | Description                                                                        |
+| ------------------------------ | ---------------------------------------------------------------------------------- |
+| note list                      | List all saved notes                                                               |
+| note add \<Title> \<Note body> | Add a new note.You can select the empty note body. It will be saved as empty note. |
+| note del \<number>             | Delete note by number                                                              |
+| note del all                   | Delete all notes (with confirm)                                                    |
+| note help                      | Show help message                                                                  |
 
+## Demo
+- Add Note
+```sh
+$ note add test test2
+Note: Added "test" - "test2"
+```
+
+- You cna select the empty note body
+```sh
+$ note add hoge
+Note: Added "hoge" - ""
+```
+
+- Show notes
+```sh
+$ note list
+Note:
+0: test - test2
+1: hoge - 
+```

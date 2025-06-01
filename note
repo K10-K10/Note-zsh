@@ -60,10 +60,9 @@ fi
 if [[ "$1" == "help" ]]; then
   echo "Usage: note [command] [args]"
   echo "Commands:"
-  echo "  list          List all notes"
+  echo "  list          List all saved notes"
   echo "  add <Title> <Note body>   Add a new note with title and body"
-  echo "    You can choose empty Note body. It will be saved as empty note."
   echo "  del [number|all]   Delete a note by number or all notes"
-  echo "  help          Show this help message"
+  echo "  help          Show help message"
   exit 0
 fi
