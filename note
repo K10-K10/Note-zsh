@@ -27,6 +27,7 @@ if [[ "$1" == "add" ]]; then
     exit 1
   fi
   echo "$2" >> "$NOTES_FILE"
+  shift 2
   echo "$*" >> "$NOTES_FILE"
   echo "Note: Added \"$2\" - \"$*\""
   exit 0
