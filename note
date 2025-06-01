@@ -1,28 +1,69 @@
-#!/usr/bin/zsh
+#!/bin/zsh
 
-
-
-setopt KSH_ARRAYS
 NOTES_FILE="$(dirname "$0")/note.txt"
 
 if [[ "$1" == "list" ]]; then
   if [[ -f "$NOTES_FILE" ]]; then
-    line=$(wc -l < "$NOTES_FILE")
-    line2=$((line/2))
-    for i in $(seq 1 $line2); do
-      note=$(sed -n "${i}p" "$NOTES_FILE") # TODO: Output the note in a single line
-      echo -n "$(((i - 1) * 2)): $note  "
+    echo "Note:"
+    line_count=$(wc -l < "$NOTES_FILE")
+    note_count=$((line_count / 2))
+    for i in $(seq 0 $((note_count - 1))); do
+      title_line=$((i * 2 + 1))
+      note_line=$((i * 2 + 2))
+      title=$(sed -n "${title_line}p" "$NOTES_FILE")
+      note=$(sed -n "${note_line}p" "$NOTES_FILE")
+      echo "$i: $title - $note"
     done
-    echo
   else
-    echo "No notes yet."
+    echo "Note: No notes yet."
   fi
+  exit 0
 fi
 
 if [[ "$1" == "add" ]]; then
   if [[ -z "$2" ]]; then
+    echo "Note: Please provide a title and note."
+    echo "Usage: note add <Title> <Note body>"
     exit 1
   fi
   echo "$2" >> "$NOTES_FILE"
-  echo "Note added: $2"
+  echo "$3" >> "$NOTES_FILE"
+  echo "Note: Added \"$2\" - \"$3\""
+  exit 0
+fi
+
+if [[ "$1" == "del" ]]; then
+  if [[ -z "$2" ]]; then
+    echo "Note: Please provide a note number to delete."
+    exit 1
+  fi
+  if [[ "$2" == "all" ]]; then
+    echo -n "Note: Are you sure you want to delete all notes? (y/N): "
+    read -r confirm
+    if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
+      rm -f "$NOTES_FILE"
+      echo "Note: All notes deleted."
+    else
+      echo "Note: Deletion cancelled."
+    fi
+    exit 0
+  fi
+
+  num="$2"
+  start_line=$((num * 2 + 1))
+  sed -i "${start_line}d" "$NOTES_FILE"
+  sed -i "${start_line}d" "$NOTES_FILE" 
+  echo "Note: Deleted note number $num"
+  exit 0
+fi
+
+if [[ "$1" == "help" ]]; then
+  echo "Usage: note [command] [args]"
+  echo "Commands:"
+  echo "  list          List all notes"
+  echo "  add <Title> <Note body>   Add a new note with title and body"
+  echo "    You can choose empty Note body. It will be saved as empty note."
+  echo "  del [number|all]   Delete a note by number or all notes"
+  echo "  help          Show this help message"
+  exit 0
 fi
