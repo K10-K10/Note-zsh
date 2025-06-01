@@ -27,8 +27,8 @@ if [[ "$1" == "add" ]]; then
     exit 1
   fi
   echo "$2" >> "$NOTES_FILE"
-  echo "$3" >> "$NOTES_FILE"
-  echo "Note: Added \"$2\" - \"$3\""
+  echo "$*" >> "$NOTES_FILE"
+  echo "Note: Added \"$2\" - \"$*\""
   exit 0
 fi
 
@@ -39,7 +39,7 @@ if [[ "$1" == "del" ]]; then
   fi
   if [[ "$2" == "all" ]]; then
     echo -n "Note: Are you sure you want to delete all notes? (y/N): "
-    read -r confirm
+    read -q confirm
     if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
       rm -f "$NOTES_FILE"
       echo "Note: All notes deleted."
