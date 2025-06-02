@@ -5,7 +5,7 @@ NOTES_FILE="$(dirname "$0")/note.txt"
 if [[ "$1" == "list" ]]; then
   if [[ -f "$NOTES_FILE" ]]; then
     echo "Note:"
-    line_count=$(wc -l < "$NOTES_FILE")
+    line_count=$(wc -l <"$NOTES_FILE")
     note_count=$((line_count / 2))
     for i in $(seq 0 $((note_count - 1))); do
       title_line=$((i * 2 + 1))
@@ -26,14 +26,14 @@ if [[ "$1" == "add" ]]; then
     echo "Usage: note add <Title> <Note body>"
     exit 1
   fi
-  echo "$2" >> "$NOTES_FILE"
+  echo "$2" >>"$NOTES_FILE"
   shift 2
-  echo "$*" >> "$NOTES_FILE"
+  echo "$*" >>"$NOTES_FILE"
   echo "Note: Added \"$2\" - \"$*\""
   exit 0
 fi
 
-if [[ "$1" == "del" ]]; then
+if [[ "$1" == "del" || "$1" == "dell" ]]; then
   if [[ -z "$2" ]]; then
     echo "Note: Please provide a note number to delete."
     exit 1
@@ -53,8 +53,46 @@ if [[ "$1" == "del" ]]; then
   num="$2"
   start_line=$((num * 2 + 1))
   sed -i "${start_line}d" "$NOTES_FILE"
-  sed -i "${start_line}d" "$NOTES_FILE" 
+  sed -i "${start_line}d" "$NOTES_FILE"
   echo "Note: Deleted note number $num"
+  exit 0
+fi
+
+if [[ "$1" == "find" ]]; then
+  if [[ -z "$2" ]]; then
+    echo "Note: Please provide a keyword to search for."
+    exit 1
+  fi
+
+  if [[ -f "$NOTES_FILE" ]]; then
+    line_count=$(wc -l <"$NOTES_FILE")
+    note_count=$((line_count / 2))
+
+    for i in $(seq 0 $((note_count - 1))); do
+      title_line=$((i * 2 + 1))
+      note_line=$((i * 2 + 2))
+      title=$(sed -n "${title_line}p" "$NOTES_FILE")
+      body=$(sed -n "${note_line}p" "$NOTES_FILE")
+
+      if [[ "$3" == "-t" ]]; then
+        if echo "$title" | grep -iq "$2"; then
+          echo "$i: $(echo "$title" | grep --color=always -i "$2") - $body"
+        fi
+      elif [[ "$3" == "-b" ]]; then
+        if echo "$body" | grep -iq "$2"; then
+          echo "$i: $title - $(echo "$body" | grep --color=always -i "$2")"
+        fi
+      else
+        if echo "$title" | grep -iq "$2" || echo "$body" | grep -iq "$2"; then
+          title_colored=$(echo "$title" | grep --color=always -i "$2" || echo "$title")
+          body_colored=$(echo "$body" | grep --color=always -i "$2" || echo "$body")
+          echo "$i: $title_colored - $body_colored"
+        fi
+      fi
+    done
+  else
+    echo "Note: No notes found."
+  fi
   exit 0
 fi
 
@@ -64,6 +102,7 @@ if [[ "$1" == "help" ]]; then
   echo "  list          List all saved notes"
   echo "  add <Title> <Note body>   Add a new note with title and body"
   echo "  del [number|all]   Delete a note by number or all notes"
+  echo "  find <keyword> [-t|-b]   Find notes by keyword in title,body"
   echo "  help          Show help message"
   exit 0
 fi

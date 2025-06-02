@@ -33,13 +33,14 @@ note list
 ```
 
 ## Commands
-| Command                        | Description                                                                        |
-| ------------------------------ | ---------------------------------------------------------------------------------- |
-| note list                      | List all saved notes                                                               |
-| note add \<Title> \<Note body> | Add a new note.You can select the empty note body. It will be saved as empty note. |
-| note del \<number>             | Delete note by number                                                              |
-| note del all                   | Delete all notes (with confirm)                                                    |
-| note help                      | Show help message                                                                  |
+| Command                        | Description                                                         | Option                           |
+| ------------------------------ | ------------------------------------------------------------------- | -------------------------------- |
+| note list                      | List all saved notes                                                |                                  |
+| note add \<Title> \<Note body> | Add a new note. You can leave the note body empty.                  |                                  |
+| note del \<number>             | Delete note by number                                               |                                  |
+| note del                       | all	Delete all notes (with confirmation)                            |                                  |
+| note find \<keyword>           | Search notes for the keyword (case-insensitive, highlights matches) | -t, -b (Search just in tab,body) |
+| note help                      | Show help message                                                   |                                  |
 
 ## Demo
 - Add Note
@@ -60,4 +61,16 @@ $ note list
 Note:
 0: test - test2
 1: hoge - 
+```
+
+- Delete note
+```sh
+$ note del 1
+Note: Deleted note number 1
+```
+
+- Find keyword
+```sh
+$ note del test
+7: test - test hoge
 ```
