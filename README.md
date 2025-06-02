@@ -7,8 +7,13 @@ Simple note-taking command line tool in Zsh.
 ## Installation
 
 ### 1.Clone the repo
+HTTPS
 ```sh
-git clone https://github.com/yourname/note-zsh.git
+git clone --depth=1 https://github.com/K10-K10/note-zsh.git
+```
+SSH
+```sh
+git clone --depth=1 git@github.com:K10-K10/Note-zsh.git
 ```
 ### 2.Add to Path
 Edit your ~/.zshrc to include the path:
