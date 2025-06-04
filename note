@@ -3,19 +3,39 @@
 NOTES_FILE="$(dirname "$0")/note.txt"
 
 if [[ "$1" == "list" ]]; then
-  if [[ -f "$NOTES_FILE" ]]; then
-    echo "Note:"
-    line_count=$(wc -l <"$NOTES_FILE")
-    note_count=$((line_count / 2))
-    for i in $(seq 0 $((note_count - 1))); do
-      title_line=$((i * 2 + 1))
-      note_line=$((i * 2 + 2))
-      title=$(sed -n "${title_line}p" "$NOTES_FILE")
-      note=$(sed -n "${note_line}p" "$NOTES_FILE")
-      echo "$i: $title - $note"
-    done
+  if [[ -z "$2" ]]; then
+    if [[ -f "$NOTES_FILE" ]]; then
+      echo "Note:"
+      line_count=$(wc -l <"$NOTES_FILE")
+      note_count=$((line_count / 2))
+      for i in $(seq 0 $((note_count - 1))); do
+        title_line=$((i * 2 + 1))
+        note_line=$((i * 2 + 2))
+        title=$(sed -n "${title_line}p" "$NOTES_FILE")
+        note=$(sed -n "${note_line}p" "$NOTES_FILE")
+        echo "$i: $title - $note"
+      done
+    else
+      echo "Note: No notes yet."
+    fi
   else
-    echo "Note: No notes yet."
+    if [[ -f "$NOTES_FILE" ]]; then
+      cnt=0
+      line_count=$(wc -l <"$NOTES_FILE")
+      note_count=$((line_count / 2))
+      for i in $(seq 0 $((note_count - 1))); do
+        title_line=$((i * 2 + 1))
+        note_line=$((i * 2 + 2))
+        title=$(sed -n "${title_line}p" "$NOTES_FILE")
+        body=$(sed -n "${note_line}p" "$NOTES_FILE")
+        if echo "$title" | grep -iq "$2"; then
+          echo "$i: $(echo "$title") - $body"
+          cnt=$((cnt + 1))
+        fi
+      done
+      title_line=$(($line_count / 2))
+      echo "$cnt / $line_count"
+    fi
   fi
   exit 0
 fi
@@ -99,7 +119,7 @@ fi
 if [[ "$1" == "help" ]]; then
   echo "Usage: note [command] [args]"
   echo "Commands:"
-  echo "  list          List all saved notes"
+  echo "  list [Title]         List all saved notes or filter by title"
   echo "  add <Title> <Note body>   Add a new note with title and body"
   echo "  del [number|all]   Delete a note by number or all notes"
   echo "  find <keyword> [-t|-b]   Find notes by keyword in title,body"

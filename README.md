@@ -35,7 +35,7 @@ note list
 ## Commands
 | Command                        | Description                                                         | Option                           |
 | ------------------------------ | ------------------------------------------------------------------- | -------------------------------- |
-| note list                      | List all saved notes                                                |                                  |
+| note list                      | List all saved notes                                                | \<Title> filter by title         |
 | note add \<Title> \<Note body> | Add a new note. You can leave the note body empty.                  |                                  |
 | note del \<number>             | Delete note by number                                               |                                  |
 | note del                       | all	Delete all notes (with confirmation)                            |                                  |
