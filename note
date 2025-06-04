@@ -1,5 +1,10 @@
 #!/bin/zsh
 
+version="0.1.1"
+if [[ "$1" == "--version" || "$1" == "-v" ]]; then
+  echo "Note script version $version"
+  exit 0
+fi
 NOTES_FILE="$(dirname "$0")/note.txt"
 
 if [[ "$1" == "list" ]]; then
