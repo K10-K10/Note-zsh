@@ -121,6 +121,50 @@ if [[ "$1" == "find" ]]; then
   exit 0
 fi
 
+if [[ "$1" == "edit" ]]; then
+  if [[ -z "$2" ]]; then
+    echo "Note: Please provide a note number to edit."
+    exit 1
+  fi
+
+  if [[ ! -f "$NOTES_FILE" ]]; then
+    echo "Note: No notes found."
+    exit 1
+  fi
+
+  num="$2"
+  start_line=$((num * 2 + 1))
+
+  if ! sed -n "${start_line}p" "$NOTES_FILE" &>/dev/null; then
+    echo "Note: Note number $num does not exist."
+    exit 1
+  fi
+
+  title=$(sed -n "${start_line}p" "$NOTES_FILE")
+  body=$(sed -n "$((start_line + 1))p" "$NOTES_FILE")
+  if [[ -z "$3" ]]; then
+    echo "Current Title: $title"
+    echo "Current Body: $body"
+    echo -n "Enter new title (leave empty to keep current): "
+    read new_title
+    echo -n "Enter new body (leave empty to keep current): "
+    read new_body
+  else
+    new_title="$3"
+    new_body="$4"
+  fi
+
+  if [[ -n "$new_title" ]]; then
+    sed -i "${start_line}s/.*/$new_title/" "$NOTES_FILE"
+  fi
+  if [[ -n "$new_body" ]]; then
+    sed -i "$((start_line + 1))s/.*/$new_body/" "$NOTES_FILE"
+  fi
+
+  echo "Note: Note number $num updated."
+  exit 0
+fi
+
 if [[ "$1" == "help" ]]; then
   echo "Usage: note [command] [args]"
   echo "Commands:"
