@@ -172,6 +172,8 @@ if [[ "$1" == "help" ]]; then
   echo "  add <Title> <Note body>   Add a new note with title and body"
   echo "  del [number|all]   Delete a note by number or all notes"
   echo "  find <keyword> [-t|-b]   Find notes by keyword in title,body"
+  echo "  edit <number> [new_title] [new_body]   Edit a note by number"
   echo "  help          Show help message"
+  echo "  --version, -v   Show script version"
   exit 0
 fi
