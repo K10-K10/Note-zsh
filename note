@@ -140,6 +140,8 @@ if [[ "$1" == "edit" ]]; then
     exit 1
   fi
 
+  new_title=""
+  new_body=""
   title=$(sed -n "${start_line}p" "$NOTES_FILE")
   body=$(sed -n "$((start_line + 1))p" "$NOTES_FILE")
   if [[ -z "$3" ]]; then
@@ -149,6 +151,12 @@ if [[ "$1" == "edit" ]]; then
     read new_title
     echo -n "Enter new body (leave empty to keep current): "
     read new_body
+  elif [[ "$3" == "-t" ]]; then
+    new_title="$4"
+    new_body="$body"
+  elif [[ "$3" == "-b" ]]; then
+    new_title="$title"
+    new_body="$4"
   else
     new_title="$3"
     new_body="$4"
@@ -173,6 +181,8 @@ if [[ "$1" == "help" ]]; then
   echo "  del [number|all]   Delete a note by number or all notes"
   echo "  find <keyword> [-t|-b]   Find notes by keyword in title,body"
   echo "  edit <number> [new_title] [new_body]   Edit a note by number"
+  echo "  edit <number> -t <new_title>   Edit only the title of a note"
+  echo "  edit <number> -b <new_body>   Edit only the body of a note"
   echo "  help          Show help message"
   echo "  --version, -v   Show script version"
   exit 0

@@ -33,14 +33,15 @@ note list
 ```
 
 ## Commands
-| Command                        | Description                                                         | Option                           |
-| ------------------------------ | ------------------------------------------------------------------- | -------------------------------- |
-| note list                      | List all saved notes                                                | \<Title> filter by title         |
-| note add \<Title> \<Note body> | Add a new note. You can leave the note body empty.                  |                                  |
-| note del \<number>             | Delete note by number                                               |                                  |
-| note del                       | all	Delete all notes (with confirmation)                            |                                  |
-| note find \<keyword>           | Search notes for the keyword (case-insensitive, highlights matches) | -t, -b (Search just in tab,body) |
-| note help                      | Show help message                                                   |                                  |
+| Command                                      | Description                                                         | Option                                                          |
+| -------------------------------------------- | ------------------------------------------------------------------- | --------------------------------------------------------------- |
+| note list                                    | List all saved notes                                                | \<Title> filter by title                                        |
+| note add \<Title> \<Note body>               | Add a new note. You can leave the note body empty.                  |                                                                 |
+| note del \<number>                           | Delete note by number                                               |                                                                 |
+| note del                                     | all	Delete all notes (with confirmation)                            |                                                                 |
+| note find \<keyword>                         | Search notes for the keyword (case-insensitive, highlights matches) | -t, -b (Search just in tab,body)                                |
+| note edit \<number> \<new title> \<new body> | Edit note that already save in Note.                                | -t \<new title> , -b \<new body> (Just change title, note body) |
+| note help                                    | Show help message                                                   |                                                                 |
 
 ## Demo
 - Add Note
