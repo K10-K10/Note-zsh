@@ -70,6 +70,7 @@ if [[ "$1" == "del" || "$1" == "dell" ]]; then
     read -q confirm
     if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
       rm -f "$NOTES_FILE"
+      echo
       echo "Note: All notes deleted."
     else
       echo "Note: Deletion cancelled."
