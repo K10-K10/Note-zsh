@@ -4,13 +4,13 @@ use crossterm::{
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
-use ratatui::prelude::Rect;
 use ratatui::{
     backend::CrosstermBackend,
     text::Text,
     widgets::{Block, Borders, Paragraph},
     Terminal,
 };
+use ratatui::{prelude::Rect, text};
 use std::io;
 
 fn main() -> Result<()> {
@@ -32,6 +32,8 @@ fn main() -> Result<()> {
             let List_block_miy = 0 as u16;
             let List_block_x = size.width / 5 * 3 as u16;
             let List_block_y = size.height - 4 as u16;
+
+            let cmd_block_body = "q: quit" as &str;
             let cmd_block_mix = 0 as u16;
             let cmd_block_miy = size.height - 3 as u16;
             let cmd_block_x = size.width as u16;
@@ -45,11 +47,11 @@ fn main() -> Result<()> {
                 Paragraph::new(Text::from("Hello TUI!")).block(List_block.clone());
             f.render_widget(List_block_paragraph, List_block_area);
 
-            let cmd_block = Block::default().title("cmd").borders(Borders::ALL);
+            let cmd_block = Block::default().title("").borders(Borders::ALL);
             let cmd_block_area = Rect::new(cmd_block_mix, cmd_block_miy, cmd_block_x, cmd_block_y);
             f.render_widget(&cmd_block, cmd_block_area);
             let cmd_block_paragraph =
-                Paragraph::new(Text::from("q: quit")).block(cmd_block.clone());
+                Paragraph::new(Text::from(cmd_block_body)).block(cmd_block.clone());
             f.render_widget(cmd_block_paragraph, cmd_block_area);
         })?;
 
