@@ -18,7 +18,7 @@ use ratatui::{
     widgets::{Block, Borders, List, ListItem, Paragraph},
     Terminal,
 };
-use std::io::stdout;
+// use std::io::stdout;
 use std::{
     fs::{File, OpenOptions},
     io::{self, BufRead, BufReader, Write},
@@ -36,7 +36,7 @@ fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
     Rect::new(popup_x, popup_y, popup_width, popup_height)
 }
 
-fn get_user_input(terminal: &mut Terminal<CrosstermBackend<std::io::Stdout>>) -> Result<String> {
+/*fn get_user_input(terminal: &mut Terminal<CrosstermBackend<std::io::Stdout>>) -> Result<String> {
     let mut input = String::new();
 
     loop {
@@ -65,7 +65,7 @@ fn get_user_input(terminal: &mut Terminal<CrosstermBackend<std::io::Stdout>>) ->
             }
         }
     }
-}
+}*/
 fn load_notes(path: &str) -> Result<Vec<String>> {
     let file = File::open(path).unwrap_or_else(|_| File::create(path).unwrap());
     let reader = BufReader::new(file);
@@ -158,8 +158,11 @@ fn main() -> Result<()> {
                 f.render_widget(paragraph, area);
             }
         })?;
-
+        ///add_popup_active = 0 <- no't open
+        ///                 = 1 <- write Title
+        ///                 = 2 <- write Body
         if add_popup_active == 1 {
+            // TODO: Make function of add command
             let mut cnt = 0 as u16;
             if let Event::Key(key) = event::read()? {
                 match key.code {
@@ -167,8 +170,9 @@ fn main() -> Result<()> {
                         if note.text.trim().is_empty() {
                             //TODO: Error
                             add_popup_active = 0;
+                        } else {
+                            add_popup_active = 2;
                         }
-                        add_popup_active = 2;
                     }
 
                     KeyCode::Esc => {
