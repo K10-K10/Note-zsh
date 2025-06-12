@@ -65,11 +65,6 @@ fn draw_main_ui(f: &mut Frame, items: &Vec<ListItem>) {
     f.render_widget(cmd_paragraph, cmd_block_area);
 }
 
-struct NoteFormat {
-    text: String,
-    body: String,
-}
-
 fn add_command(
     f: &mut Frame,
     add_popup_active: &mut i8,
@@ -142,6 +137,18 @@ fn add_command(
     Ok(())
 }
 
+struct NoteFormat {
+    text: String,
+    body: String,
+}
+
+union key_command {
+    q: bool,
+    a: bool,
+    l: bool,
+    f: bool,
+}
+
 fn main() -> Result<()> {
     color_eyre::install()?;
 
@@ -158,7 +165,7 @@ fn main() -> Result<()> {
         text: String::new(),
         body: String::new(),
     };
-    let mut items: Vec<ListItem> = notes.iter().map(|n| ListItem::new(n.as_str())).collect();
+    let mut items: Vec<ListItem> = notes_2.iter().map(|n| ListItem::new(n.as_str())).collect();
 
     loop {
         let mut key_event = None;
@@ -166,7 +173,11 @@ fn main() -> Result<()> {
             if let Event::Key(key) = event::read()? {
                 match key.code {
                     KeyCode::Char('q') => break,
-                    KeyCode::Char('a') => add_popup_active = 1,
+                    KeyCode::Char('a') => {
+                        if (add_popup_active == 0) {
+                            add_popup_active = 1;
+                        }
+                    }
                     _ => {}
                 }
                 key_event = Some(key);
@@ -174,22 +185,31 @@ fn main() -> Result<()> {
         }
 
         terminal.draw(|f| {
-            let mut items: Vec<ListItem> =
-                notes_2.iter().map(|n| ListItem::new(n.as_str())).collect();
-
             draw_main_ui(f, &items);
 
+            // key_event があるときだけ popup を処理して描画
             if let Some(k) = key_event {
-                if let Err(e) = add_command(
+                let _ = add_command(
                     f,
                     &mut add_popup_active,
                     &mut notes,
                     &mut items,
                     &mut note,
                     k,
-                ) {
-                    eprintln!("Error: {:?}", e);
-                }
+                );
+            }
+
+            // key_event が None のときも popup を表示し続けるために呼ぶ！
+            if key_event.is_none() && add_popup_active != 0 {
+                let dummy_key = KeyEvent::new(KeyCode::Null, event::KeyModifiers::NONE);
+                let _ = add_command(
+                    f,
+                    &mut add_popup_active,
+                    &mut notes,
+                    &mut items,
+                    &mut note,
+                    dummy_key,
+                );
             }
         })?;
     }
