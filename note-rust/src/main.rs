@@ -1,14 +1,11 @@
 use color_eyre::eyre::Result;
 use crossterm::{
     cursor::{MoveDown, MoveTo, Show},
-    event::{
-        self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEvent, KeyEventKind,
-    },
+    event::{self, Event, KeyCode, KeyEvent},
     execute,
-    style::Print,
+    //style::Print,
     terminal::{
-        self, disable_raw_mode, enable_raw_mode, Clear, ClearType, EnterAlternateScreen,
-        LeaveAlternateScreen,
+        self, disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
     },
 };
 use ratatui::{
@@ -18,15 +15,11 @@ use ratatui::{
     widgets::{Block, Borders, List, ListItem, Paragraph},
     Terminal,
 };
-// use std::io::stdout;
 use std::{
     fs::{File, OpenOptions},
     io::{self, BufRead, BufReader, Write},
     time::Duration,
 };
-
-const WIDTH: u16 = 2;
-const HEIGHT: u16 = 1;
 
 fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
     let popup_width = r.width * percent_x / 100;
@@ -36,36 +29,6 @@ fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
     Rect::new(popup_x, popup_y, popup_width, popup_height)
 }
 
-/*fn get_user_input(terminal: &mut Terminal<CrosstermBackend<std::io::Stdout>>) -> Result<String> {
-    let mut input = String::new();
-
-    loop {
-        terminal.draw(|f| {
-            let area = centered_rect(60, 20, f.size());
-            let block = Block::default().title("New Note").borders(Borders::ALL);
-            let paragraph = Paragraph::new(Text::from(input.as_str())).block(block);
-
-            f.render_widget(paragraph, area);
-        })?;
-
-        if let Event::Key(KeyEvent { code, kind, .. }) = event::read()? {
-            if kind != KeyEventKind::Press {
-                continue;
-            }
-            match code {
-                KeyCode::Enter => return Ok(input),
-                KeyCode::Esc => return Ok(String::new()),
-                KeyCode::Backspace => {
-                    input.pop();
-                }
-                KeyCode::Char(c) => {
-                    input.push(c);
-                }
-                _ => {}
-            }
-        }
-    }
-}*/
 fn load_notes(path: &str) -> Result<Vec<String>> {
     let file = File::open(path).unwrap_or_else(|_| File::create(path).unwrap());
     let reader = BufReader::new(file);
@@ -102,23 +65,81 @@ fn draw_main_ui(f: &mut Frame, items: &Vec<ListItem>) {
     f.render_widget(cmd_paragraph, cmd_block_area);
 }
 
-/*fn draw_add_popup(
-    f: &mut Frame,
-    terminal: &mut Terminal<CrosstermBackend<std::io::Stdout>>,
-) -> Result<(), Box<dyn std::error::Error>> {
-    let note = get_user_input(terminal)?;
-
-    if !note.trim().is_empty() {
-        append_note_to_file("note.txt", &note)?;
-        let notes = load_notes("note.txt")?; //TODO: Chose pop or All load again
-    }
-
-    Ok(())
-}*/
-
 struct NoteFormat {
     text: String,
     body: String,
+}
+
+fn add_command(
+    f: &mut Frame,
+    add_popup_active: &mut i8,
+    notes: &mut Vec<String>,
+    items: &mut Vec<ListItem>,
+    note: &mut NoteFormat,
+    key_event: KeyEvent,
+) -> Result<()> {
+    let area = centered_rect(60, 20, f.area());
+
+    if *add_popup_active == 1 {
+        let block = Block::default()
+            .title("New Note Title")
+            .borders(Borders::ALL);
+        let paragraph = Paragraph::new(note.text.as_str()).block(block);
+        f.render_widget(paragraph, area);
+
+        match key_event.code {
+            KeyCode::Enter => {
+                if !note.text.trim().is_empty() {
+                    *add_popup_active = 2;
+                } else {
+                    *add_popup_active = 0; // 空ならキャンセル
+                }
+            }
+            KeyCode::Esc => {
+                note.text.clear();
+                *add_popup_active = 0;
+            }
+            KeyCode::Backspace => {
+                note.text.pop();
+            }
+            KeyCode::Char(c) => {
+                note.text.push(c);
+            }
+            _ => {}
+        }
+    } else if *add_popup_active == 2 {
+        let block = Block::default()
+            .title("New Note Body")
+            .borders(Borders::ALL);
+        let paragraph = Paragraph::new(note.body.as_str()).block(block);
+        f.render_widget(paragraph, area);
+
+        match key_event.code {
+            KeyCode::Enter => {
+                append_note_to_file("note.txt", &note.text)?;
+                append_note_to_file("note.txt", &note.body)?;
+                *notes = load_notes("note.txt")?;
+                *items = notes.iter().map(|n| ListItem::new(n.clone())).collect();
+                note.text.clear();
+                note.body.clear();
+                *add_popup_active = 0;
+            }
+            KeyCode::Esc => {
+                note.text.clear();
+                note.body.clear();
+                *add_popup_active = 0;
+            }
+            KeyCode::Backspace => {
+                note.body.pop();
+            }
+            KeyCode::Char(c) => {
+                note.body.push(c);
+            }
+            _ => {}
+        }
+    }
+
+    Ok(())
 }
 
 fn main() -> Result<()> {
@@ -130,116 +151,47 @@ fn main() -> Result<()> {
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
-    let mut notes = load_notes("note.txt")?; //Note Path
-    let mut items: Vec<ListItem> = notes.iter().map(|n| ListItem::new(n.as_str())).collect();
-    let mut add_popup_active = 0 as i8;
-    //let mut popup_input = String::new();
+    let mut notes: Vec<String> = load_notes("note.txt")?;
+    let mut notes_2: Vec<String> = load_notes("note.txt")?;
+    let mut add_popup_active = 0i8;
     let mut note = NoteFormat {
         text: String::new(),
         body: String::new(),
     };
+    let mut items: Vec<ListItem> = notes.iter().map(|n| ListItem::new(n.as_str())).collect();
 
     loop {
-        terminal.draw(|f| {
-            draw_main_ui(f, &items);
-            if add_popup_active == 1 {
-                let area = centered_rect(60, 20, f.area());
-                let block = Block::default()
-                    .title("New Note Title")
-                    .borders(Borders::ALL);
-                let paragraph = Paragraph::new(note.text.as_str()).block(block);
-                f.render_widget(paragraph, area);
-            } else if add_popup_active == 2 {
-                let area = centered_rect(60, 20, f.area());
-                let block = Block::default()
-                    .title("New Note body")
-                    .borders(Borders::ALL);
-                let paragraph = Paragraph::new(note.body.as_str()).block(block);
-                f.render_widget(paragraph, area);
-            }
-        })?;
-        ///add_popup_active = 0 <- no't open
-        ///                 = 1 <- write Title
-        ///                 = 2 <- write Body
-        if add_popup_active == 1 {
-            // TODO: Make function of add command
-            let mut cnt = 0 as u16;
+        let mut key_event = None;
+        if event::poll(Duration::from_millis(200))? {
             if let Event::Key(key) = event::read()? {
                 match key.code {
-                    KeyCode::Enter => {
-                        if note.text.trim().is_empty() {
-                            //TODO: Error
-                            add_popup_active = 0;
-                        } else {
-                            add_popup_active = 2;
-                        }
-                    }
-
-                    KeyCode::Esc => {
-                        note.text.clear();
-                        add_popup_active = 0;
-                    }
-                    KeyCode::Backspace => {
-                        note.text.pop();
-                    }
-                    KeyCode::Char(c) => {
-                        if (cnt <= 50) {
-                            note.text.push(c);
-                        } else {
-                            note.text.remove(0);
-                            note.text.push(c);
-                        }
-                    }
+                    KeyCode::Char('q') => break,
+                    KeyCode::Char('a') => add_popup_active = 1,
                     _ => {}
                 }
-            }
-        } else if add_popup_active == 2 {
-            if let Event::Key(key) = event::read()? {
-                match key.code {
-                    KeyCode::Enter => {
-                        append_note_to_file("note.txt", &note.text);
-                        notes = load_notes("note.txt")?;
-                        items = notes
-                            .iter()
-                            .map(|n| ListItem::new(n.as_str()))
-                            .collect::<Vec<_>>();
-                        append_note_to_file("note.txt", &note.body);
-                        notes = load_notes("note.txt")?;
-                        items = notes
-                            .iter()
-                            .map(|n| ListItem::new(n.as_str()))
-                            .collect::<Vec<_>>();
-                        note.text.clear();
-                        note.body.clear();
-                        add_popup_active = 0;
-                    }
-                    KeyCode::Esc => {
-                        note.text.clear();
-                        note.body.clear();
-                        add_popup_active = 0;
-                    }
-                    KeyCode::Backspace => {
-                        note.body.pop();
-                    }
-                    KeyCode::Char(c) => {
-                        note.body.push(c);
-                    }
-                    _ => {}
-                }
-            }
-        } else {
-            if event::poll(Duration::from_millis(200))? {
-                if let Event::Key(key) = event::read()? {
-                    match key.code {
-                        KeyCode::Char('q') => break,
-                        KeyCode::Char('a') => {
-                            add_popup_active = 1;
-                        }
-                        _ => {}
-                    }
-                }
+                key_event = Some(key);
             }
         }
+
+        terminal.draw(|f| {
+            let mut items: Vec<ListItem> =
+                notes_2.iter().map(|n| ListItem::new(n.as_str())).collect();
+
+            draw_main_ui(f, &items);
+
+            if let Some(k) = key_event {
+                if let Err(e) = add_command(
+                    f,
+                    &mut add_popup_active,
+                    &mut notes,
+                    &mut items,
+                    &mut note,
+                    k,
+                ) {
+                    eprintln!("Error: {:?}", e);
+                }
+            }
+        })?;
     }
 
     disable_raw_mode()?;
