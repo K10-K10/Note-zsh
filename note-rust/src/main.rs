@@ -1,7 +1,7 @@
 use color_eyre::eyre::Result;
 use crossterm::{
     // cursor::{MoveDown, MoveTo, Show},
-    event::{self, Event, KeyCode, KeyEvent},
+    event::{self, Event, KeyCode, KeyEvent, KeyModifiers},
     execute,
     //style::Print,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
@@ -13,6 +13,7 @@ use ratatui::{
     widgets::{Block, Borders, List, ListItem, Paragraph},
     Terminal,
 };
+
 use std::{
     fs::{File, OpenOptions},
     io::{self, BufRead, BufReader, Write},
@@ -225,6 +226,10 @@ fn main() -> Result<()> {
 
     loop {
         let mut key_event = None;
+        if let Event::Key(key) = event::read()? {
+            if key.code == KeyCode::Char('r') && key.modifiers == KeyModifiers::CONTROL { //TODO: Add Ctr + some key
+            }
+        }
         if event::poll(Duration::from_millis(200))? {
             if let Event::Key(key) = event::read()? {
                 match key.code {
