@@ -52,7 +52,7 @@ fn draw_main_ui(f: &mut Frame, items: &Vec<ListItem>) {
     );
     f.render_widget(list, list_block_area);
 
-    let cmd_block = Block::default()//TODO: cmd line show when push 'h' key
+    let cmd_block = Block::default() //TODO: cmd line show when push 'h' key
         .title("")
         .border_type(ratatui::widgets::BorderType::Rounded)
         .borders(Borders::ALL);
@@ -166,8 +166,8 @@ fn add_command(
                 area,
                 note,
                 notes,
-                items,
                 key_event,
+                items,
                 add_popup_active,
                 action,
             )?;
@@ -210,7 +210,7 @@ fn main() -> Result<()> {
     let mut terminal = Terminal::new(backend)?;
 
     let notes_raw: Vec<String> = load_notes("note.txt")?;
-    let line_cnt = notes_raw.len()
+    let line_cnt = notes_raw.len();
     let mut notes: Vec<NoteFormat> = vec![];
     let mut items: Vec<ListItem> = notes_raw
         .iter()
