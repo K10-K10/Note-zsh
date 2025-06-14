@@ -60,7 +60,7 @@ fn draw_main_ui(f: &mut Frame, items: &Vec<ListItem>) {
         .border_type(ratatui::widgets::BorderType::Rounded)
         .borders(Borders::ALL);
     let cmd_paragraph =
-        Paragraph::new(Text::from("q: quit / a: add note")).block(cmd_block.clone());
+        Paragraph::new(Text::from("q: quit / a: add note")).block(cmd_block.clone()); // HACK: make variable that cmd-text
     f.render_widget(cmd_block, cmd_block_area);
     f.render_widget(cmd_paragraph, cmd_block_area);
 }
@@ -72,7 +72,9 @@ fn add_command(
     items: &mut Vec<ListItem>,
     note: &mut NoteFormat,
     key_event: KeyEvent,
+    action: &mut bool,
 ) -> Result<()> {
+    *action = true;
     let area = centered_rect(60, 20, f.area());
 
     if *add_popup_active == 1 {
@@ -81,17 +83,19 @@ fn add_command(
             .borders(Borders::ALL);
         let paragraph = Paragraph::new(note.text.as_str()).block(block);
         f.render_widget(paragraph, area);
-
+        //note.text.remove(0);
         match key_event.code {
             KeyCode::Enter => {
                 if !note.text.trim().is_empty() {
                     *add_popup_active = 2;
                 } else {
-                    *add_popup_active = 0; // 空ならキャンセル
+                    *add_popup_active = 0;
+                    *action = false;
                 }
             }
             KeyCode::Esc => {
                 note.text.clear();
+                *action = false;
                 *add_popup_active = 0;
             }
             KeyCode::Backspace => {
@@ -117,12 +121,14 @@ fn add_command(
                 *items = notes.iter().map(|n| ListItem::new(n.clone())).collect();
                 note.text.clear();
                 note.body.clear();
+                *action = false;
                 *add_popup_active = 0;
             }
             KeyCode::Esc => {
                 note.text.clear();
                 note.body.clear();
                 *add_popup_active = 0;
+                *action = false;
             }
             KeyCode::Backspace => {
                 note.body.pop();
@@ -133,9 +139,14 @@ fn add_command(
             _ => {}
         }
     }
-
     Ok(())
 }
+
+fn edit_command() {
+    //TODO : Make edit command
+}
+
+fn filter_command() {}
 
 struct NoteFormat {
     text: String,
@@ -143,6 +154,8 @@ struct NoteFormat {
 }
 
 union key_command {
+    // TODO: manage key input with union or something
+    // Now, they are getting direct
     q: bool,
     a: bool,
     l: bool,
@@ -161,6 +174,7 @@ fn main() -> Result<()> {
     let mut notes: Vec<String> = load_notes("note.txt")?;
     let mut notes_2: Vec<String> = load_notes("note.txt")?;
     let mut add_popup_active = 0i8;
+    let mut action = false as bool;
     let mut note = NoteFormat {
         text: String::new(),
         body: String::new(),
@@ -172,7 +186,11 @@ fn main() -> Result<()> {
         if event::poll(Duration::from_millis(200))? {
             if let Event::Key(key) = event::read()? {
                 match key.code {
-                    KeyCode::Char('q') => break,
+                    KeyCode::Char('q') => {
+                        if (!action) {
+                            break;
+                        }
+                    }
                     KeyCode::Char('a') => {
                         if (add_popup_active == 0) {
                             add_popup_active = 1;
@@ -187,7 +205,6 @@ fn main() -> Result<()> {
         terminal.draw(|f| {
             draw_main_ui(f, &items);
 
-            // key_event があるときだけ popup を処理して描画
             if let Some(k) = key_event {
                 let _ = add_command(
                     f,
@@ -196,10 +213,9 @@ fn main() -> Result<()> {
                     &mut items,
                     &mut note,
                     k,
+                    &mut action,
                 );
             }
-
-            // key_event が None のときも popup を表示し続けるために呼ぶ！
             if key_event.is_none() && add_popup_active != 0 {
                 let dummy_key = KeyEvent::new(KeyCode::Null, event::KeyModifiers::NONE);
                 let _ = add_command(
@@ -209,6 +225,7 @@ fn main() -> Result<()> {
                     &mut items,
                     &mut note,
                     dummy_key,
+                    &mut action,
                 );
             }
         })?;
