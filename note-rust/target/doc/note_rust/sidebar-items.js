@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["HEIGHT","WIDTH"],"fn":["append_note_to_file","centered_rect","draw_main_ui","load_notes","main"],"struct":["NoteFormat"]};
