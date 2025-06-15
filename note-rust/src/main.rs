@@ -8,21 +8,24 @@ use crossterm::{
 };
 use ratatui::{
     backend::CrosstermBackend,
+    layout::Alignment,
     prelude::*,
     text::Text,
-    widgets::{Block, Borders, List, ListItem, Paragraph},
+    widgets::{Block, BorderType, Borders, List, ListItem, ListState, Paragraph, Wrap},
     Terminal,
 };
 
+use std::fs::OpenOptions;
+use std::io::{Seek, SeekFrom, Write};
 use std::{
-    fs::{File, OpenOptions},
-    io::{self, BufRead, BufReader, Write},
+    fs::File,
+    io::{self, BufRead, BufReader},
     time::Duration,
 };
 
-fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
-    let popup_width = r.width * percent_x / 100;
-    let popup_height = r.height * percent_y / 100;
+fn add_popup_text_input(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
+    let popup_width = r.width * percent_x / 150;
+    let popup_height = 3;
     let popup_x = r.x + (r.width - popup_width) / 2;
     let popup_y = r.y + (r.height - popup_height) / 2;
     Rect::new(popup_x, popup_y, popup_width, popup_height)
@@ -33,32 +36,37 @@ fn load_notes(path: &str) -> Result<Vec<String>> {
     let reader = BufReader::new(file);
     Ok(reader.lines().filter_map(Result::ok).collect())
 }
-fn append_note_to_file(path: &str, note: &str) -> Result<()> {
+fn append_note_to_file(path: &str, note: &str, body: &str) -> Result<()> {
     let mut file = OpenOptions::new().append(true).create(true).open(path)?;
-    writeln!(file, "{}", note)?;
+    writeln!(file, "{:<100}", note)?;
+    writeln!(file, "{:<100}", body)?;
     Ok(())
 }
 
-fn draw_main_ui(f: &mut Frame, items: &Vec<ListItem>) {
+fn draw_main_ui(f: &mut Frame, items: &Vec<ListItem>, list_state: &mut ListState) {
     let size = f.area();
 
-    let list_block_area = Rect::new(0, 0, size.width * 3 / 5, size.height - 3);
+    let list_block_area = Rect::new(0, 0, size.width, size.height - 3);
     let cmd_block_area = Rect::new(0, size.height - 3, size.width, 3);
 
     let list = List::new(items.clone()).block(
         Block::default()
             .title("[1]: Notes")
-            .border_type(ratatui::widgets::BorderType::Rounded)
+            .border_type(BorderType::Rounded)
             .borders(Borders::ALL),
     );
-    f.render_widget(list, list_block_area);
+    // .highlight_style(Style::default().bg(Color::Blue))
+    // .highlight_symbol(">> "); // TODO: make cursor
 
-    let cmd_block = Block::default() //TODO: cmd line show when push 'h' key
+    f.render_stateful_widget(list, list_block_area, list_state);
+
+    let cmd_block = Block::default()
         .title("")
-        .border_type(ratatui::widgets::BorderType::Rounded)
+        .border_type(BorderType::Rounded)
         .borders(Borders::ALL);
+
     let cmd_paragraph =
-        Paragraph::new(Text::from("q: quit / a: add note")).block(cmd_block.clone()); // HACK: make variable that cmd-text
+        Paragraph::new(Text::from("q: quit / a: add note")).block(cmd_block.clone());
     f.render_widget(cmd_block, cmd_block_area);
     f.render_widget(cmd_paragraph, cmd_block_area);
 }
@@ -115,14 +123,16 @@ fn draw_add_popup_body(
     let block = Block::default()
         .title("New Note Body")
         .borders(Borders::ALL);
-    let paragraph = Paragraph::new(note.body.as_str()).block(block);
+    let paragraph = Paragraph::new(note.body.as_str())
+        .block(block)
+        .wrap(Wrap { trim: true })
+        .alignment(Alignment::Left);
     f.render_widget(paragraph, area);
 
     match key_event.code {
         KeyCode::Enter => {
-            *line_cnt = (*line_cnt + 2) / 2;
-            append_note_to_file("../note.txt", &note.text)?;
-            append_note_to_file("../note.txt", &note.body)?;
+            *line_cnt = (notes.len() + 1) as u32;
+            append_note_to_file("../note.txt", &note.text, &note.body)?;
             items.push(ListItem::new(format!(
                 "{}: \"{}\" - \"{}\"",
                 line_cnt, note.text, note.body
@@ -160,7 +170,7 @@ fn add_command(
     line_cnt: &mut u32,
 ) -> Result<()> {
     *action = true;
-    let area = centered_rect(60, 20, f.area());
+    let area = add_popup_text_input(60, 20, f.area());
 
     match *add_popup_active {
         1 => {
@@ -184,7 +194,257 @@ fn add_command(
     Ok(())
 }
 
-fn edit_command() {
+fn edit_line_input(
+    f: &mut Frame,
+    edit_popup_active: &mut i8,
+    notes: &mut Vec<NoteFormat>,
+    items: &mut Vec<ListItem>,
+    note: &mut NoteFormat,
+    key_event: KeyEvent,
+    action: &mut bool,
+    line_cnt: u32,
+    area: Rect,
+    edit_line_num: &mut String,
+) {
+    let block = Block::default()
+        .title("Edit note line number")
+        .borders(Borders::ALL);
+    let paragraph = Paragraph::new(edit_line_num.as_str()).block(block);
+    f.render_widget(paragraph, area);
+    match key_event.code {
+        KeyCode::Enter => {
+            let edit_line_num: u32 = edit_line_num.parse().unwrap_or(0);
+            if line_cnt >= edit_line_num as u32 {
+                *edit_popup_active = 2;
+            } else {
+                *edit_popup_active = 0;
+                *action = false;
+            }
+        }
+        KeyCode::Esc => {
+            *edit_popup_active = 0;
+            *action = false;
+            edit_line_num.clear();
+        }
+        KeyCode::Backspace => {
+            edit_line_num.pop();
+        }
+        KeyCode::Char(c) => {
+            edit_line_num.push(c);
+        }
+        _ => {}
+    }
+}
+fn edit_text_input(
+    f: &mut Frame,
+    edit_popup_active: &mut i8,
+    notes: &mut Vec<NoteFormat>,
+    items: &mut Vec<ListItem>,
+    note: &mut NoteFormat,
+    key_event: KeyEvent,
+    action: &mut bool,
+    line_cnt: u32,
+    area: Rect,
+    edit_line_num: &mut String,
+) {
+    let line_num = match edit_line_num.trim().parse::<usize>() {
+        Ok(n) if n >= 1 && n <= line_cnt as usize => n - 1,
+        _ => {
+            *edit_popup_active = 0;
+            *action = false;
+            return;
+        }
+    };
+    let selected_note: Option<&NoteFormat> = if line_num < notes.len() {
+        Some(&notes[line_num])
+    } else {
+        // eprintln!(
+        //     "line_num {} is out of range for notes length {}",
+        //     line_num,
+        //     notes.len()
+        // );
+
+        *edit_line_num = String::new();
+        *edit_popup_active = 1;
+        *action = false;
+        None
+    };
+
+    let block = Block::default()
+        .title("Edit note title")
+        .borders(Borders::ALL);
+
+    let paragraph = Paragraph::new(note.text.as_str()).block(block);
+    f.render_widget(paragraph, area);
+
+    match key_event.code {
+        KeyCode::Enter => {
+            if !note.text.trim().is_empty() {
+                *edit_popup_active = 3;
+            } else {
+                *edit_popup_active = 0;
+                *action = false;
+            }
+        }
+        KeyCode::Esc => {
+            *action = false;
+            *edit_popup_active = 0;
+            note.text.clear();
+        }
+        KeyCode::Backspace => {
+            note.text.pop();
+        }
+        KeyCode::Char(c) => {
+            note.text.push(c);
+        }
+        KeyCode::Right => {
+            if let Some(sn) = selected_note {
+                note.text = sn.text.clone();
+            }
+        }
+
+        _ => {}
+    }
+}
+
+fn edit_body_input(
+    f: &mut Frame,
+    edit_popup_active: &mut i8,
+    notes: &mut Vec<NoteFormat>,
+    items: &mut Vec<ListItem>,
+    note: &mut NoteFormat,
+    key_event: KeyEvent,
+    action: &mut bool,
+    line_cnt: u32,
+    area: Rect,
+    edit_line_num: &mut String,
+) -> std::io::Result<()> {
+    let line_num = match edit_line_num.trim().parse::<usize>() {
+        Ok(n) if n >= 1 && n <= line_cnt as usize => n - 1,
+        _ => {
+            *edit_popup_active = 0;
+            *action = false;
+            return Ok(());
+        }
+    };
+
+    let selected_note = &notes[line_num];
+    let block = Block::default()
+        .title("Edit note body")
+        .borders(Borders::ALL);
+
+    let paragraph = Paragraph::new(note.body.as_str()).block(block);
+    f.render_widget(paragraph, area);
+
+    match key_event.code {
+        KeyCode::Enter => {
+            //BUG: Don't move this process.
+            if !note.body.trim().is_empty() {
+                notes[line_num].body = note.body.clone();
+
+                let mut file = std::fs::OpenOptions::new()
+                    .write(true)
+                    .open("filename.txt")?;
+                let offset = (101 * line_num) as u64; // NOTE: 1 line 100 later + \n
+                file.seek(std::io::SeekFrom::Start(offset))?;
+                let padded = format!("{:<width$}", note.body, width = 100);
+                file.write_all(padded.as_bytes())?;
+
+                items[line_num] = ListItem::new(format!(
+                    "{}: \"{}\" - \"{}\"",
+                    line_num + 1,
+                    notes[line_num].text,
+                    notes[line_num].body
+                ));
+                *edit_popup_active = 0;
+                *action = false;
+                note.text.clear();
+                note.body.clear();
+                edit_line_num.clear();
+            } else {
+                *edit_popup_active = 0;
+                *action = false;
+            }
+        }
+        KeyCode::Esc => {
+            *edit_popup_active = 0;
+            *action = false;
+            note.body.clear();
+        }
+        KeyCode::Backspace => {
+            note.body.pop();
+        }
+        KeyCode::Char(c) => {
+            note.body.push(c);
+        }
+        KeyCode::Right => {
+            note.body = selected_note.body.clone();
+        }
+        _ => {}
+    }
+
+    Ok(())
+}
+
+fn edit_command(
+    f: &mut Frame,
+    edit_popup_active: &mut i8,
+    notes: &mut Vec<NoteFormat>,
+    items: &mut Vec<ListItem>,
+    note: &mut NoteFormat,
+    key_event: KeyEvent,
+    action: &mut bool,
+    line_cnt: u32,
+    edit_line_num: &mut String,
+) -> Result<()> {
+    *action = true;
+    let area = add_popup_text_input(60, 20, f.area());
+    match *edit_popup_active {
+        1 => {
+            edit_line_input(
+                f,
+                edit_popup_active,
+                notes,
+                items,
+                note,
+                key_event,
+                action,
+                line_cnt,
+                area,
+                edit_line_num,
+            );
+        }
+        2 => {
+            edit_text_input(
+                f,
+                edit_popup_active,
+                notes,
+                items,
+                note,
+                key_event,
+                action,
+                line_cnt,
+                area,
+                edit_line_num,
+            );
+        }
+        3 => {
+            edit_body_input(
+                f,
+                edit_popup_active,
+                notes,
+                items,
+                note,
+                key_event,
+                action,
+                line_cnt,
+                area,
+                edit_line_num,
+            )?;
+        }
+        _ => {}
+    }
+    Ok(())
     //TODO : Make edit command
 }
 
@@ -214,7 +474,10 @@ fn main() -> Result<()> {
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
-    let notes_raw: Vec<String> = load_notes("../note.txt")?;
+    let notes_raw: Vec<String> = load_notes("../note.txt")?
+        .into_iter()
+        .map(|line| line.trim_end().to_string())
+        .collect();
     let mut line_cnt = notes_raw.len() as u32;
     let mut notes: Vec<NoteFormat> = vec![];
     // let mut items: Vec<ListItem> = notes_raw
@@ -241,9 +504,13 @@ fn main() -> Result<()> {
 
     let mut action = false;
     let mut add_popup_active = 0;
+    let mut edit_popup_active: i8 = 0;
+    let mut edit_line_num: String = "".to_string();
 
     let mut note = NoteFormat::default();
-    let mut keycnt = false as bool;
+
+    let mut list_state = ListState::default();
+    list_state.select(Some(0));
 
     loop {
         let mut key_event = None;
@@ -283,7 +550,15 @@ fn main() -> Result<()> {
                     }
                     KeyCode::Char('e') => {
                         if !action {
-                            edit_command();
+                            edit_popup_active = 1;
+                            //edit_command();
+                        } else {
+                            key_event = Some(key);
+                        }
+                    }
+                    KeyCode::Esc => {
+                        if !action {
+                            break;
                         } else {
                             key_event = Some(key);
                         }
@@ -296,7 +571,7 @@ fn main() -> Result<()> {
         }
 
         terminal.draw(|f| {
-            draw_main_ui(f, &items);
+            draw_main_ui(f, &items, &mut list_state);
 
             let current_key = key_event.unwrap_or_else(|| {
                 if add_popup_active != 0 {
@@ -316,6 +591,19 @@ fn main() -> Result<()> {
                     current_key,
                     &mut action,
                     &mut line_cnt,
+                );
+            }
+            if edit_popup_active != 0 {
+                let _ = edit_command(
+                    f,
+                    &mut edit_popup_active,
+                    &mut notes,
+                    &mut items,
+                    &mut note,
+                    current_key,
+                    &mut action,
+                    line_cnt,
+                    &mut edit_line_num,
                 );
             }
         })?;
