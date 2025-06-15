@@ -110,6 +110,7 @@ fn draw_add_popup_body(
     items: &mut Vec<ListItem>,
     add_popup_active: &mut i8,
     action: &mut bool,
+    line_cnt: &mut u32,
 ) -> Result<()> {
     let block = Block::default()
         .title("New Note Body")
@@ -119,10 +120,13 @@ fn draw_add_popup_body(
 
     match key_event.code {
         KeyCode::Enter => {
-            append_note_to_file("note.txt", &note.text)?;
-            append_note_to_file("note.txt", &note.body)?;
-            items.push(ListItem::new(note.text.clone()));
-            items.push(ListItem::new(note.body.clone()));
+            *line_cnt = (*line_cnt + 2) / 2;
+            append_note_to_file("../note.txt", &note.text)?;
+            append_note_to_file("../note.txt", &note.body)?;
+            items.push(ListItem::new(format!(
+                "{}: \"{}\" - \"{}\"",
+                line_cnt, note.text, note.body
+            )));
             notes.push(note.clone());
             *note = NoteFormat::default();
             *action = false;
@@ -153,6 +157,7 @@ fn add_command(
     note: &mut NoteFormat,
     key_event: KeyEvent,
     action: &mut bool,
+    line_cnt: &mut u32,
 ) -> Result<()> {
     *action = true;
     let area = centered_rect(60, 20, f.area());
@@ -171,12 +176,11 @@ fn add_command(
                 items,
                 add_popup_active,
                 action,
+                line_cnt,
             )?;
         }
         _ => {}
     }
-    *action = false;
-
     Ok(())
 }
 
@@ -210,13 +214,30 @@ fn main() -> Result<()> {
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
-    let notes_raw: Vec<String> = load_notes("note.txt")?;
-    let line_cnt = notes_raw.len();
+    let notes_raw: Vec<String> = load_notes("../note.txt")?;
+    let mut line_cnt = notes_raw.len() as u32;
     let mut notes: Vec<NoteFormat> = vec![];
-    let mut items: Vec<ListItem> = notes_raw
-        .iter()
-        .map(|n| ListItem::new(n.as_str()))
-        .collect();
+    // let mut items: Vec<ListItem> = notes_raw
+    // .iter()
+    // .map(|n| ListItem::new(n.as_str()))
+    // .collect();
+
+    let mut items: Vec<ListItem<'_>> = vec![];
+    let mut i = 0;
+    while i + 1 < notes_raw.len() {
+        let note = NoteFormat {
+            text: notes_raw[i].clone(),
+            body: notes_raw[i + 1].clone(),
+        };
+        items.push(ListItem::new(format!(
+            "{}: \"{}\" - \"{}\"",
+            ((i + 2) / 2),
+            note.text,
+            note.body
+        )));
+        notes.push(note);
+        i += 2;
+    }
 
     let mut action = false;
     let mut add_popup_active = 0;
@@ -226,32 +247,46 @@ fn main() -> Result<()> {
 
     loop {
         let mut key_event = None;
-        if let Event::Key(key) = event::read()? {
-            if key.code == KeyCode::Char('r') && key.modifiers == KeyModifiers::CONTROL { //TODO: Add Ctr + some key
-            }
-        }
-        if event::poll(Duration::from_millis(200))? {
+
+        if event::poll(Duration::from_millis(50))? {
             if let Event::Key(key) = event::read()? {
                 match key.code {
                     KeyCode::Char('a') => {
-                        if add_popup_active == 0 {
-                            add_popup_active = 1;
-                            key_event = None;
+                        if !action {
+                            if add_popup_active == 0 {
+                                add_popup_active = 1;
+                            }
+                        } else {
+                            key_event = Some(key);
                         }
                     }
                     KeyCode::Char('q') => {
                         if !action {
                             break;
+                        } else {
+                            key_event = Some(key);
                         }
                     }
                     KeyCode::Char('F') => {
-                        filter_command();
+                        if !action {
+                            filter_command();
+                        } else {
+                            key_event = Some(key);
+                        }
                     }
                     KeyCode::Char('f') => {
-                        find_command();
+                        if !action {
+                            find_command();
+                        } else {
+                            key_event = Some(key);
+                        }
                     }
                     KeyCode::Char('e') => {
-                        edit_command();
+                        if !action {
+                            edit_command();
+                        } else {
+                            key_event = Some(key);
+                        }
                     }
                     _ => {
                         key_event = Some(key);
@@ -267,12 +302,11 @@ fn main() -> Result<()> {
                 if add_popup_active != 0 {
                     KeyEvent::new(KeyCode::Null, event::KeyModifiers::NONE)
                 } else {
-                    // 無効なキー、add_commandを呼ばないためNone相当を返す
                     KeyEvent::new(KeyCode::Null, event::KeyModifiers::CONTROL)
                 }
             });
 
-            if add_popup_active != 0 || key_event.is_some() {
+            if add_popup_active != 0 {
                 let _ = add_command(
                     f,
                     &mut add_popup_active,
@@ -281,7 +315,7 @@ fn main() -> Result<()> {
                     &mut note,
                     current_key,
                     &mut action,
-                    // &mut keycnt,
+                    &mut line_cnt,
                 );
             }
         })?;
