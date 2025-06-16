@@ -468,13 +468,6 @@ struct NoteFormat {
     body: String,
 }
 
-enum KeyCommand {
-    Q,
-    A,
-    L,
-    F,
-}
-
 fn main() -> Result<()> {
     color_eyre::install()?;
 
