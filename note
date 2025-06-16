@@ -5,58 +5,58 @@ if [[ "$1" == "--version" || "$1" == "-v" ]]; then
   echo "Note script version $version"
   exit 0
 fi
+
 NOTES_FILE="$(dirname "$0")/note.txt"
 
+pad() {
+  printf "%-100s" "$1"
+}
+
+unpad() {
+  echo "$1" | sed 's/[[:space:]]*$//'
+}
+
 if [[ "$1" == "list" ]]; then
-  if [[ -z "$2" ]]; then
-    if [[ -f "$NOTES_FILE" ]]; then
-      echo "Note:"
-      line_count=$(wc -l <"$NOTES_FILE")
-      note_count=$((line_count / 2))
-      for i in $(seq 0 $((note_count - 1))); do
-        title_line=$((i * 2 + 1))
-        note_line=$((i * 2 + 2))
-        title=$(sed -n "${title_line}p" "$NOTES_FILE")
-        note=$(sed -n "${note_line}p" "$NOTES_FILE")
-        echo "$i: $title - $note"
-      done
-    else
-      echo "Note: No notes yet."
-    fi
+  if [[ -f "$NOTES_FILE" ]]; then
+    echo "Note:"
+    line_count=$(wc -l <"$NOTES_FILE")
+    note_count=$((line_count / 2))
+    for i in $(seq 0 $((note_count - 1))); do
+      title_line=$((i * 2 + 1))
+      note_line=$((i * 2 + 2))
+      title=$(sed -n "${title_line}p" "$NOTES_FILE" | sed 's/[[:space:]]*$//')
+      body=$(sed -n "${note_line}p" "$NOTES_FILE" | sed 's/[[:space:]]*$//')
+      echo "$i: $title - $body"
+    done
   else
-    if [[ -f "$NOTES_FILE" ]]; then
-      cnt=0
-      line_count=$(wc -l <"$NOTES_FILE")
-      note_count=$((line_count / 2))
-      for i in $(seq 0 $((note_count - 1))); do
-        title_line=$((i * 2 + 1))
-        note_line=$((i * 2 + 2))
-        title=$(sed -n "${title_line}p" "$NOTES_FILE")
-        body=$(sed -n "${note_line}p" "$NOTES_FILE")
-        if echo "$title" | grep -iq "$2"; then
-          echo "$i: $(echo "$title") - $body"
-          cnt=$((cnt + 1))
-        fi
-      done
-      title_line=$(($line_count / 2))
-      echo "$cnt / $line_count"
-    fi
+    echo "Note: No notes yet."
   fi
   exit 0
 fi
 
 if [[ "$1" == "add" ]]; then
-  if [[ -z "$2" ]]; then
+  if [[ -z "$2" || -z "$3" ]]; then
     echo "Note: Please provide a title and note."
     echo "Usage: note add <Title> <Note body>"
     exit 1
   fi
-  echo "$2" >>"$NOTES_FILE"
-  title=$2
+  title="$2"
   shift 2
-  echo "$*" >>"$NOTES_FILE"
-  echo ${title}
-  echo "Note: Added \"${title}\" - \"$*\""
+  body="$*"
+  if ((${#title} > 100)); then
+    echo "Note: Title must be 100 characters or less."
+    exit 1
+  fi
+  if ((${#body} > 100)); then
+    echo "Note: Body must be 100 characters or less."
+    exit 1
+  fi
+
+  pad "$title" >>"$NOTES_FILE"
+  echo >>"$NOTES_FILE"
+  pad "$body" >>"$NOTES_FILE"
+  echo >>"$NOTES_FILE"
+  echo "Note: Added \"$title\" - \"$body\""
   exit 0
 fi
 
@@ -68,16 +68,15 @@ if [[ "$1" == "del" || "$1" == "dell" ]]; then
   if [[ "$2" == "all" ]]; then
     echo -n "Note: Are you sure you want to delete all notes? (y/N): "
     read -q confirm
+    echo
     if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
       rm -f "$NOTES_FILE"
-      echo
       echo "Note: All notes deleted."
     else
       echo "Note: Deletion cancelled."
     fi
     exit 0
   fi
-
   num="$2"
   start_line=$((num * 2 + 1))
   sed -i "${start_line}d" "$NOTES_FILE"
@@ -91,16 +90,14 @@ if [[ "$1" == "find" ]]; then
     echo "Note: Please provide a keyword to search for."
     exit 1
   fi
-
   if [[ -f "$NOTES_FILE" ]]; then
     line_count=$(wc -l <"$NOTES_FILE")
     note_count=$((line_count / 2))
-
     for i in $(seq 0 $((note_count - 1))); do
       title_line=$((i * 2 + 1))
       note_line=$((i * 2 + 2))
-      title=$(sed -n "${title_line}p" "$NOTES_FILE")
-      body=$(sed -n "${note_line}p" "$NOTES_FILE")
+      title=$(sed -n "${title_line}p" "$NOTES_FILE" | sed 's/[[:space:]]*$//')
+      body=$(sed -n "${note_line}p" "$NOTES_FILE" | sed 's/[[:space:]]*$//')
 
       if [[ "$3" == "-t" ]]; then
         if echo "$title" | grep -iq "$2"; then
@@ -129,49 +126,42 @@ if [[ "$1" == "edit" ]]; then
     echo "Note: Please provide a note number to edit."
     exit 1
   fi
-
-  if [[ ! -f "$NOTES_FILE" ]]; then
-    echo "Note: No notes found."
-    exit 1
-  fi
-
   num="$2"
   start_line=$((num * 2 + 1))
-
   if ! sed -n "${start_line}p" "$NOTES_FILE" &>/dev/null; then
     echo "Note: Note number $num does not exist."
     exit 1
   fi
-
-  new_title=""
-  new_body=""
-  title=$(sed -n "${start_line}p" "$NOTES_FILE")
-  body=$(sed -n "$((start_line + 1))p" "$NOTES_FILE")
+  old_title=$(sed -n "${start_line}p" "$NOTES_FILE" | sed 's/[[:space:]]*$//')
+  old_body=$(sed -n "$((start_line + 1))p" "$NOTES_FILE" | sed 's/[[:space:]]*$//')
   if [[ -z "$3" ]]; then
-    echo "Current Title: $title"
-    echo "Current Body: $body"
+    echo "Current Title: $old_title"
+    echo "Current Body: $old_body"
     echo -n "Enter new title (leave empty to keep current): "
     read new_title
     echo -n "Enter new body (leave empty to keep current): "
     read new_body
   elif [[ "$3" == "-t" ]]; then
     new_title="$4"
-    new_body="$body"
+    new_body="$old_body"
   elif [[ "$3" == "-b" ]]; then
-    new_title="$title"
+    new_title="$old_title"
     new_body="$4"
   else
     new_title="$3"
     new_body="$4"
   fi
-
-  if [[ -n "$new_title" ]]; then
-    sed -i "${start_line}s/.*/$new_title/" "$NOTES_FILE"
+  if [[ -n "$new_title" && ${#new_title} -gt 100 ]]; then
+    echo "Note: Title must be 100 characters or less."
+    exit 1
   fi
-  if [[ -n "$new_body" ]]; then
-    sed -i "$((start_line + 1))s/.*/$new_body/" "$NOTES_FILE"
+  if [[ -n "$new_body" && ${#new_body} -gt 100 ]]; then
+    echo "Note: Body must be 100 characters or less."
+    exit 1
   fi
 
+  [[ -n "$new_title" ]] && sed -i "${start_line}s/.*/$(pad "$new_title")/" "$NOTES_FILE"
+  [[ -n "$new_body" ]] && sed -i "$((start_line + 1))s/.*/$(pad "$new_body")/" "$NOTES_FILE"
   echo "Note: Note number $num updated."
   exit 0
 fi
@@ -179,14 +169,13 @@ fi
 if [[ "$1" == "help" ]]; then
   echo "Usage: note [command] [args]"
   echo "Commands:"
-  echo "  list [Title]         List all saved notes or filter by title"
-  echo "  add <Title> <Note body>   Add a new note with title and body"
-  echo "  del [number|all]   Delete a note by number or all notes"
-  echo "  find <keyword> [-t|-b]   Find notes by keyword in title,body"
-  echo "  edit <number> [new_title] [new_body]   Edit a note by number"
-  echo "  edit <number> -t <new_title>   Edit only the title of a note"
-  echo "  edit <number> -b <new_body>   Edit only the body of a note"
-  echo "  help          Show help message"
-  echo "  --version, -v   Show script version"
+  echo "  list [Title]            List all saved notes or filter by title"
+  echo "  add <Title> <Note body> Add a new note"
+  echo "  del [number|all]        Delete a note by number or all notes"
+  echo "  find <keyword> [-t|-b]  Find notes by keyword in title/body"
+  echo "  edit <number> [new_title] [new_body]"
+  echo "                          Edit a note by number"
+  echo "  help                    Show this help"
+  echo "  --version, -v           Show script version"
   exit 0
 fi

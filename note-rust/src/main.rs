@@ -100,7 +100,8 @@ fn draw_add_popup_title(
 
     match key_event.code {
         KeyCode::Enter => {
-            if !note.text.trim().is_empty() {
+            if !note.text.trim().is_empty() && note.text.len() <= 101 {
+                //TODO: add error message
                 *add_popup_active = 2;
             } else {
                 *add_popup_active = 0;
@@ -144,16 +145,19 @@ fn draw_add_popup_body(
 
     match key_event.code {
         KeyCode::Enter => {
-            *line_cnt = (notes.len() + 1) as u32;
-            append_note_to_file(&note.text, &note.body)?;
-            items.push(ListItem::new(format!(
-                "{}: \"{}\" - \"{}\"",
-                line_cnt, note.text, note.body
-            )));
-            notes.push(note.clone());
-            *note = NoteFormat::default();
-            *action = false;
-            *add_popup_active = 0;
+            if note.body.len() <= 101 {
+                //TODO: add error message
+                *line_cnt = (notes.len() + 1) as u32;
+                append_note_to_file(&note.text, &note.body)?;
+                items.push(ListItem::new(format!(
+                    "{}: \"{}\" - \"{}\"",
+                    line_cnt, note.text, note.body
+                )));
+                notes.push(note.clone());
+                *note = NoteFormat::default();
+                *action = false;
+                *add_popup_active = 0;
+            }
         }
         KeyCode::Esc => {
             *add_popup_active = 0;
@@ -172,6 +176,7 @@ fn draw_add_popup_body(
     Ok(())
 }
 fn add_command(
+    //TODO: fix cmd_help
     //HACK: More fast
     f: &mut Frame,
     add_popup_active: &mut i8,
@@ -292,7 +297,8 @@ fn edit_text_input(
 
     match key_event.code {
         KeyCode::Enter => {
-            if !note.text.trim().is_empty() {
+            if !note.text.trim().is_empty() && note.text.len() <= 101 {
+                //TODO: add error message
                 *edit_popup_active = 3;
             } else {
                 *edit_popup_active = 0;
@@ -349,31 +355,33 @@ fn edit_body_input(
     f.render_widget(paragraph, area);
     match key_event.code {
         KeyCode::Enter => {
-            //BUG: Don't move this process.
-            notes[line_num].text = note.text.clone();
-            notes[line_num].body = note.body.clone();
+            //TODO: add error message
+            if note.body.len() <= 101 {
+                notes[line_num].text = note.text.clone();
+                notes[line_num].body = note.body.clone();
 
-            let mut file = std::fs::OpenOptions::new().write(true).open(file_path)?;
-            let offset = (101 * line_num) as u64;
-            file.seek(std::io::SeekFrom::Start(offset))?;
-            let padded = format!("{:<100}\n", note.text);
-            file.write_all(padded.as_bytes())?;
-            let offset = (101 * (line_num + 1)) as u64;
-            file.seek(std::io::SeekFrom::Start(offset))?;
-            let padded = format!("{:<100}\n", note.body);
-            file.write_all(padded.as_bytes())?;
+                let mut file = std::fs::OpenOptions::new().write(true).open(file_path)?;
+                let offset = (101 * line_num) as u64;
+                file.seek(std::io::SeekFrom::Start(offset))?;
+                let padded = format!("{:<100}\n", note.text);
+                file.write_all(padded.as_bytes())?;
+                let offset = (101 * (line_num + 1)) as u64;
+                file.seek(std::io::SeekFrom::Start(offset))?;
+                let padded = format!("{:<100}\n", note.body);
+                file.write_all(padded.as_bytes())?;
 
-            items[line_num] = ListItem::new(format!(
-                "{}: \"{}\" - \"{}\"",
-                line_num + 1,
-                notes[line_num].text,
-                notes[line_num].body
-            ));
-            *edit_popup_active = 0;
-            *action = false;
-            note.text.clear();
-            note.body.clear();
-            edit_line_num.clear();
+                items[line_num] = ListItem::new(format!(
+                    "{}: \"{}\" - \"{}\"",
+                    line_num + 1,
+                    notes[line_num].text,
+                    notes[line_num].body
+                ));
+                *edit_popup_active = 0;
+                *action = false;
+                note.text.clear();
+                note.body.clear();
+                edit_line_num.clear();
+            }
         }
         KeyCode::Esc => {
             *edit_popup_active = 0;
