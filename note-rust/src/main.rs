@@ -23,6 +23,8 @@ use std::{
     time::Duration,
 };
 
+static file_path: &str = "../note.txt";
+
 fn add_popup_text_input(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
     let popup_width = r.width * percent_x / 150;
     let popup_height = 3;
@@ -31,13 +33,24 @@ fn add_popup_text_input(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
     Rect::new(popup_x, popup_y, popup_width, popup_height)
 }
 
-fn load_notes(path: &str) -> Result<Vec<String>> {
-    let file = File::open(path).unwrap_or_else(|_| File::create(path).unwrap());
+fn edit_popup_text_input(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
+    let popup_width = r.width * percent_x / 150;
+    let popup_height = 9;
+    let popup_x = r.x + (r.width - popup_width) / 2;
+    let popup_y = r.y + (r.height - popup_height) / 2;
+    Rect::new(popup_x, popup_y, popup_width, popup_height)
+}
+
+fn load_notes() -> Result<Vec<String>> {
+    let file = File::open(file_path).unwrap_or_else(|_| File::create(file_path).unwrap());
     let reader = BufReader::new(file);
     Ok(reader.lines().filter_map(Result::ok).collect())
 }
-fn append_note_to_file(path: &str, note: &str, body: &str) -> Result<()> {
-    let mut file = OpenOptions::new().append(true).create(true).open(path)?;
+fn append_note_to_file(note: &str, body: &str) -> Result<()> {
+    let mut file = OpenOptions::new()
+        .append(true)
+        .create(true)
+        .open(file_path)?;
     writeln!(file, "{:<100}", note)?;
     writeln!(file, "{:<100}", body)?;
     Ok(())
@@ -132,7 +145,7 @@ fn draw_add_popup_body(
     match key_event.code {
         KeyCode::Enter => {
             *line_cnt = (notes.len() + 1) as u32;
-            append_note_to_file("../note.txt", &note.text, &note.body)?;
+            append_note_to_file(&note.text, &note.body)?;
             items.push(ListItem::new(format!(
                 "{}: \"{}\" - \"{}\"",
                 line_cnt, note.text, note.body
@@ -340,9 +353,7 @@ fn edit_body_input(
             notes[line_num].text = note.text.clone();
             notes[line_num].body = note.body.clone();
 
-            let mut file = std::fs::OpenOptions::new()
-                .write(true)
-                .open("../note.txt")?;
+            let mut file = std::fs::OpenOptions::new().write(true).open(file_path)?;
             let offset = (101 * line_num) as u64;
             file.seek(std::io::SeekFrom::Start(offset))?;
             let padded = format!("{:<100}\n", note.text);
@@ -397,6 +408,8 @@ fn edit_command(
 ) -> Result<()> {
     *action = true;
     let area = add_popup_text_input(60, 20, f.area());
+
+    let text_area = edit_popup_text_input(60, 20, f.area());
     match *edit_popup_active {
         1 => {
             edit_line_input(
@@ -436,14 +449,13 @@ fn edit_command(
                 key_event,
                 action,
                 line_cnt,
-                area,
+                text_area,
                 edit_line_num,
             )?;
         }
         _ => {}
     }
     Ok(())
-    //TODO : Make edit command
 }
 
 fn find_command() {}
@@ -472,7 +484,7 @@ fn main() -> Result<()> {
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
-    let notes_raw: Vec<String> = load_notes("../note.txt")?
+    let notes_raw: Vec<String> = load_notes()?
         .into_iter()
         .map(|line| line.trim_end().to_string())
         .collect();
