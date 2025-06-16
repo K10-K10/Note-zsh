@@ -319,7 +319,7 @@ fn edit_body_input(
     area: Rect,
     edit_line_num: &mut String,
 ) -> std::io::Result<()> {
-    let line_num = match edit_line_num.trim().parse::<usize>() {
+    let mut line_num = match edit_line_num.trim().parse::<usize>() {
         Ok(n) if n >= 1 && n <= line_cnt as usize => n - 1,
         _ => {
             *edit_popup_active = 0;
@@ -327,7 +327,6 @@ fn edit_body_input(
             return Ok(());
         }
     };
-
     let selected_note = &notes[line_num];
     let block = Block::default()
         .title("Edit note body")
@@ -335,36 +334,35 @@ fn edit_body_input(
 
     let paragraph = Paragraph::new(note.body.as_str()).block(block);
     f.render_widget(paragraph, area);
-
     match key_event.code {
         KeyCode::Enter => {
             //BUG: Don't move this process.
-            if !note.body.trim().is_empty() {
-                notes[line_num].body = note.body.clone();
+            notes[line_num].text = note.text.clone();
+            notes[line_num].body = note.body.clone();
 
-                let mut file = std::fs::OpenOptions::new()
-                    .write(true)
-                    .open("filename.txt")?;
-                let offset = (101 * line_num) as u64; // NOTE: 1 line 100 later + \n
-                file.seek(std::io::SeekFrom::Start(offset))?;
-                let padded = format!("{:<width$}", note.body, width = 100);
-                file.write_all(padded.as_bytes())?;
+            let mut file = std::fs::OpenOptions::new()
+                .write(true)
+                .open("../note.txt")?;
+            let offset = (101 * line_num) as u64;
+            file.seek(std::io::SeekFrom::Start(offset))?;
+            let padded = format!("{:<100}\n", note.text);
+            file.write_all(padded.as_bytes())?;
+            let offset = (101 * (line_num + 1)) as u64;
+            file.seek(std::io::SeekFrom::Start(offset))?;
+            let padded = format!("{:<100}\n", note.body);
+            file.write_all(padded.as_bytes())?;
 
-                items[line_num] = ListItem::new(format!(
-                    "{}: \"{}\" - \"{}\"",
-                    line_num + 1,
-                    notes[line_num].text,
-                    notes[line_num].body
-                ));
-                *edit_popup_active = 0;
-                *action = false;
-                note.text.clear();
-                note.body.clear();
-                edit_line_num.clear();
-            } else {
-                *edit_popup_active = 0;
-                *action = false;
-            }
+            items[line_num] = ListItem::new(format!(
+                "{}: \"{}\" - \"{}\"",
+                line_num + 1,
+                notes[line_num].text,
+                notes[line_num].body
+            ));
+            *edit_popup_active = 0;
+            *action = false;
+            note.text.clear();
+            note.body.clear();
+            edit_line_num.clear();
         }
         KeyCode::Esc => {
             *edit_popup_active = 0;
