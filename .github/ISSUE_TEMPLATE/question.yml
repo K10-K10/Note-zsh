@@ -1,0 +1,39 @@
+name: Question
+description: Ask a general question about the project
+title: "[Question] "
+labels: [question]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        If you have a question about usage, configuration, or the project in general, please ask it here.
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your question
+      description: Describe your question in detail.
+      placeholder: How can I...?
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-tried
+    attributes:
+      label: What have you tried?
+      description: Let us know what you’ve already tried to find an answer.
+      placeholder: I’ve checked the README, tried searching issues...
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment (Optional)
+      placeholder: OS, Zsh version, Terminal app, etc.
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context (Optional)
+      description: Add any other information that might help answer your question.
