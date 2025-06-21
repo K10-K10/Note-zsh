@@ -82,7 +82,7 @@ fn draw_main_ui(f: &mut Frame, items: &Vec<ListItem>, list_state: &mut ListState
         .borders(Borders::ALL);
 
     let cmd_paragraph = Paragraph::new(Text::from(
-        "j : page down | k : page up | q : quit | a : add note",
+        "j : page down | k : page up | q : quit | a : add note | e : edit command | Enter : edit selected note",
     ))
     .block(cmd_block.clone());
     f.render_widget(cmd_block, cmd_block_area);
@@ -229,6 +229,7 @@ fn edit_line_input(
     area: Rect,
     edit_line_num: &mut String,
 ) {
+    //TODO: when it is started, edit_line_num is set 0
     let block = Block::default()
         .title("Edit note line number")
         .borders(Borders::ALL);
@@ -421,7 +422,6 @@ fn edit_command(
 ) -> Result<()> {
     *action = true;
     let area = add_popup_text_input(60, 20, f.area());
-
     let text_area = edit_popup_text_input(60, 20, f.area());
     match *edit_popup_active {
         1 => {
@@ -456,6 +456,54 @@ fn edit_command(
             edit_body_input(
                 f,
                 edit_popup_active,
+                notes,
+                items,
+                note,
+                key_event,
+                action,
+                line_cnt,
+                text_area,
+                edit_line_num,
+            )?;
+        }
+        _ => {}
+    }
+    Ok(())
+}
+
+fn edit_from_list(
+    f: &mut Frame,
+    edit_from_list_active: &mut i8,
+    notes: &mut Vec<NoteFormat>,
+    items: &mut Vec<ListItem>,
+    note: &mut NoteFormat,
+    key_event: KeyEvent,
+    action: &mut bool,
+    line_cnt: u32,
+    edit_line_num: &mut String,
+) -> Result<()> {
+    *action = true;
+    let area = add_popup_text_input(60, 20, f.area());
+    let text_area = edit_popup_text_input(60, 20, f.area());
+    match *edit_from_list_active {
+        2 => {
+            edit_text_input(
+                f,
+                edit_from_list_active,
+                notes,
+                items,
+                note,
+                key_event,
+                action,
+                line_cnt,
+                area,
+                edit_line_num,
+            );
+        }
+        3 => {
+            edit_body_input(
+                f,
+                edit_from_list_active,
                 notes,
                 items,
                 note,
@@ -521,6 +569,7 @@ fn main() -> Result<()> {
     let mut action = false;
     let mut add_popup_active = 0;
     let mut edit_popup_active: i8 = 0;
+    let mut edit_from_list_active: i8 = 0;
     let mut edit_line_num: String = "".to_string();
 
     let mut note = NoteFormat::default();
@@ -584,6 +633,8 @@ fn main() -> Result<()> {
                             let i = list_state.selected().unwrap_or(0);
                             let new_i = if i + 1 >= items.len() { 0 } else { i + 1 };
                             list_state.select(Some(new_i));
+                        } else {
+                            key_event = Some(key);
                         }
                     }
                     KeyCode::Char('k') => {
@@ -591,6 +642,36 @@ fn main() -> Result<()> {
                             let i = list_state.selected().unwrap_or(0);
                             let new_i = if i == 0 { items.len() - 1 } else { i - 1 };
                             list_state.select(Some(new_i));
+                        } else {
+                            key_event = Some(key);
+                        }
+                    }
+                    KeyCode::Up => {
+                        if !action {
+                            let i = list_state.selected().unwrap_or(0);
+                            let new_i = if i + 1 >= items.len() { 0 } else { i + 1 };
+                            list_state.select(Some(new_i));
+                        } else {
+                            key_event = Some(key);
+                        }
+                    }
+                    KeyCode::Down => {
+                        if !action {
+                            let i = list_state.selected().unwrap_or(0);
+                            let new_i = if i == 0 { items.len() - 1 } else { i - 1 };
+                            list_state.select(Some(new_i));
+                        } else {
+                            key_event = Some(key);
+                        }
+                    }
+                    KeyCode::Enter => {
+                        if !action {
+                            if let Some(index) = list_state.selected() {
+                                edit_line_num = (index + 1).to_string();
+                            }
+                            edit_from_list_active = 2; // NOTE: fn edit_text is used , so active set 2
+                        } else {
+                            key_event = Some(key);
                         }
                     }
 
@@ -628,6 +709,19 @@ fn main() -> Result<()> {
                 let _ = edit_command(
                     f,
                     &mut edit_popup_active,
+                    &mut notes,
+                    &mut items,
+                    &mut note,
+                    current_key,
+                    &mut action,
+                    line_cnt,
+                    &mut edit_line_num,
+                );
+            }
+            if edit_from_list_active != 0 {
+                let _ = edit_from_list(
+                    f,
+                    &mut edit_from_list_active,
                     &mut notes,
                     &mut items,
                     &mut note,
