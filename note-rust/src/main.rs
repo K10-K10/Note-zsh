@@ -25,7 +25,7 @@ use std::{
 
 static file_path: &str = "../note.txt";
 
-fn add_popup_text_input(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
+fn note_title_input(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
     let popup_width = r.width * percent_x / 150;
     let popup_height = 3;
     let popup_x = r.x + (r.width - popup_width) / 2;
@@ -33,7 +33,7 @@ fn add_popup_text_input(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
     Rect::new(popup_x, popup_y, popup_width, popup_height)
 }
 
-fn edit_popup_text_input(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
+fn note_body_input(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
     let popup_width = r.width * percent_x / 150;
     let popup_height = 9;
     let popup_x = r.x + (r.width - popup_width) / 2;
@@ -73,8 +73,6 @@ fn draw_main_ui(f: &mut Frame, items: &Vec<ListItem>, list_state: &mut ListState
         .highlight_style(Style::default().bg(Color::Blue));
 
     f.render_stateful_widget(list, list_block_area, list_state);
-    // .highlight_style(Style::default().bg(Color::Blue))
-    // .highlight_symbol(">> "); // TODO: make cursor
 
     let cmd_block = Block::default()
         .title("")
@@ -97,6 +95,7 @@ fn draw_add_popup_title(
     add_popup_active: &mut i8,
     action: &mut bool,
 ) {
+    let area = note_title_input(60, 20, f.area());
     let block = Block::default()
         .title("New Note Title")
         .borders(Borders::ALL);
@@ -146,6 +145,7 @@ fn draw_add_popup_body(
         .block(block)
         .wrap(Wrap { trim: true })
         .alignment(Alignment::Left);
+    let area = note_body_input(60, 20, f.area());
     f.render_widget(paragraph, area);
 
     match key_event.code {
@@ -193,7 +193,7 @@ fn add_command(
     line_cnt: &mut u32,
 ) -> Result<()> {
     *action = true;
-    let area = add_popup_text_input(60, 20, f.area());
+    let area = note_body_input(60, 20, f.area());
 
     match *add_popup_active {
         1 => {
@@ -248,7 +248,7 @@ fn edit_line_input(
         KeyCode::Esc => {
             *edit_popup_active = 0;
             *action = false;
-            edit_line_num.clear();
+            edit_line_num.clear(); //TODO: The variable EDIT_LINE_NUM is not clean.
         }
         KeyCode::Backspace => {
             edit_line_num.pop();
@@ -298,7 +298,10 @@ fn edit_text_input(
         .title("Edit note title")
         .borders(Borders::ALL);
 
-    let paragraph = Paragraph::new(note.text.as_str()).block(block);
+    let paragraph = Paragraph::new(note.text.as_str())
+        .block(block)
+        .wrap(Wrap { trim: true })
+        .alignment(Alignment::Left);
     f.render_widget(paragraph, area);
 
     match key_event.code {
@@ -421,8 +424,8 @@ fn edit_command(
     edit_line_num: &mut String,
 ) -> Result<()> {
     *action = true;
-    let area = add_popup_text_input(60, 20, f.area());
-    let text_area = edit_popup_text_input(60, 20, f.area());
+    let area = note_title_input(60, 20, f.area());
+    let text_area = note_body_input(60, 20, f.area());
     match *edit_popup_active {
         1 => {
             edit_line_input(
@@ -483,8 +486,8 @@ fn edit_from_list(
     edit_line_num: &mut String,
 ) -> Result<()> {
     *action = true;
-    let area = add_popup_text_input(60, 20, f.area());
-    let text_area = edit_popup_text_input(60, 20, f.area());
+    let area = note_title_input(60, 20, f.area());
+    let text_area = note_body_input(60, 20, f.area());
     match *edit_from_list_active {
         2 => {
             edit_text_input(
