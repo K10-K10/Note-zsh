@@ -68,6 +68,9 @@ fn draw_main_ui(f: &mut Frame, items: &Vec<ListItem>, list_state: &mut ListState
             .border_type(BorderType::Rounded)
             .borders(Borders::ALL),
     );
+    let list = List::new(items.clone())
+        .highlight_symbol(">> ")
+        .highlight_style(Style::default().bg(Color::Blue));
 
     f.render_stateful_widget(list, list_block_area, list_state);
     // .highlight_style(Style::default().bg(Color::Blue))
@@ -577,13 +580,15 @@ fn main() -> Result<()> {
                         }
                     }
                     KeyCode::Char('j') => {
-                        let i = list_state.selected().unwrap_or(0);
-                        let new_i = if i + 1 >= items.len() { 0 } else { i + 1 };
-                        list_state.select(Some(new_i));
+                        if !action {
+                            let i = list_state.selected().unwrap_or(0);
+                            let new_i = if i + 1 >= items.len() { 0 } else { i + 1 };
+                            list_state.select(Some(new_i));
+                        }
                     }
                     KeyCode::Char('k') => {
                         if !action {
-                            let i = list_state.selected().unwrap();
+                            let i = list_state.selected().unwrap_or(0);
                             let new_i = if i == 0 { items.len() - 1 } else { i - 1 };
                             list_state.select(Some(new_i));
                         }
