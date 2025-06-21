@@ -631,6 +631,24 @@ fn main() -> Result<()> {
                             key_event = Some(key);
                         }
                     }
+                    KeyCode::Down => {
+                        if !action {
+                            let i = list_state.selected().unwrap_or(0);
+                            let new_i = if i + 1 >= items.len() { 0 } else { i + 1 };
+                            list_state.select(Some(new_i));
+                        } else {
+                            key_event = Some(key);
+                        }
+                    }
+                    KeyCode::Up => {
+                        if !action {
+                            let i = list_state.selected().unwrap_or(0);
+                            let new_i = if i == 0 { items.len() - 1 } else { i - 1 };
+                            list_state.select(Some(new_i));
+                        } else {
+                            key_event = Some(key);
+                        }
+                    }
                     KeyCode::Char('j') => {
                         if !action {
                             let i = list_state.selected().unwrap_or(0);
@@ -641,24 +659,6 @@ fn main() -> Result<()> {
                         }
                     }
                     KeyCode::Char('k') => {
-                        if !action {
-                            let i = list_state.selected().unwrap_or(0);
-                            let new_i = if i == 0 { items.len() - 1 } else { i - 1 };
-                            list_state.select(Some(new_i));
-                        } else {
-                            key_event = Some(key);
-                        }
-                    }
-                    KeyCode::Up => {
-                        if !action {
-                            let i = list_state.selected().unwrap_or(0);
-                            let new_i = if i + 1 >= items.len() { 0 } else { i + 1 };
-                            list_state.select(Some(new_i));
-                        } else {
-                            key_event = Some(key);
-                        }
-                    }
-                    KeyCode::Down => {
                         if !action {
                             let i = list_state.selected().unwrap_or(0);
                             let new_i = if i == 0 { items.len() - 1 } else { i - 1 };
