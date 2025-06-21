@@ -68,18 +68,20 @@ fn draw_main_ui(f: &mut Frame, items: &Vec<ListItem>, list_state: &mut ListState
             .border_type(BorderType::Rounded)
             .borders(Borders::ALL),
     );
-    // .highlight_style(Style::default().bg(Color::Blue))
-    // .highlight_symbol(">> "); // TODO: make cursor
 
     f.render_stateful_widget(list, list_block_area, list_state);
+    // .highlight_style(Style::default().bg(Color::Blue))
+    // .highlight_symbol(">> "); // TODO: make cursor
 
     let cmd_block = Block::default()
         .title("")
         .border_type(BorderType::Rounded)
         .borders(Borders::ALL);
 
-    let cmd_paragraph =
-        Paragraph::new(Text::from("q: quit / a: add note")).block(cmd_block.clone());
+    let cmd_paragraph = Paragraph::new(Text::from(
+        "j : page down | k : page up | q : quit | a : add note",
+    ))
+    .block(cmd_block.clone());
     f.render_widget(cmd_block, cmd_block_area);
     f.render_widget(cmd_paragraph, cmd_block_area);
 }
@@ -574,6 +576,19 @@ fn main() -> Result<()> {
                             key_event = Some(key);
                         }
                     }
+                    KeyCode::Char('j') => {
+                        let i = list_state.selected().unwrap_or(0);
+                        let new_i = if i + 1 >= items.len() { 0 } else { i + 1 };
+                        list_state.select(Some(new_i));
+                    }
+                    KeyCode::Char('k') => {
+                        if !action {
+                            let i = list_state.selected().unwrap();
+                            let new_i = if i == 0 { items.len() - 1 } else { i - 1 };
+                            list_state.select(Some(new_i));
+                        }
+                    }
+
                     _ => {
                         key_event = Some(key);
                     }
