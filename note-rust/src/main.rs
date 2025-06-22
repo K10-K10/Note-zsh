@@ -1,22 +1,21 @@
 use color_eyre::eyre::Result;
 use crossterm::{
-    // cursor::{MoveDown, MoveTo, Show},
     event::{self, Event, KeyCode, KeyEvent, KeyModifiers},
     execute,
-    //style::Print,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use ratatui::{
     backend::CrosstermBackend,
     layout::Alignment,
     prelude::*,
-    text::Text,
+    style::{Color, Style},
+    text::{Text, ToText},
     widgets::{Block, BorderType, Borders, List, ListItem, ListState, Paragraph, Wrap},
     Terminal,
 };
 
 use std::fs::OpenOptions;
-use std::io::{Seek, SeekFrom, Write};
+use std::io::{Seek, Write};
 use std::{
     fs::File,
     io::{self, BufRead, BufReader},
@@ -56,19 +55,24 @@ fn append_note_to_file(note: &str, body: &str) -> Result<()> {
     Ok(())
 }
 
-fn draw_main_ui(f: &mut Frame, items: &Vec<ListItem>, list_state: &mut ListState) {
+fn draw_main_ui(
+    f: &mut Frame,
+    items: &Vec<ListItem>,
+    list_state: &mut ListState,
+    cmd_text: &mut String,
+) {
     let size = f.area();
 
     let list_block_area = Rect::new(0, 0, size.width, size.height - 3);
     let cmd_block_area = Rect::new(0, size.height - 3, size.width, 3);
 
-    let list = List::new(items.clone()).block(
-        Block::default()
-            .title("[1]: Notes")
-            .border_type(BorderType::Rounded)
-            .borders(Borders::ALL),
-    );
     let list = List::new(items.clone())
+        .block(
+            Block::default()
+                .title("[1]: Notes")
+                .border_type(BorderType::Rounded)
+                .borders(Borders::ALL),
+        )
         .highlight_symbol(">> ")
         .highlight_style(Style::default().bg(Color::Blue));
 
@@ -79,10 +83,7 @@ fn draw_main_ui(f: &mut Frame, items: &Vec<ListItem>, list_state: &mut ListState
         .border_type(BorderType::Rounded)
         .borders(Borders::ALL);
 
-    let cmd_paragraph = Paragraph::new(Text::from(
-        "j : page down | k : page up | q : quit | a : add note | e : edit command | Enter : edit selected note",
-    ))
-    .block(cmd_block.clone());
+    let cmd_paragraph = Paragraph::new(Text::from(cmd_text.to_text())).block(cmd_block.clone());
     f.render_widget(cmd_block, cmd_block_area);
     f.render_widget(cmd_paragraph, cmd_block_area);
 }
@@ -484,6 +485,7 @@ fn edit_from_list(
     action: &mut bool,
     line_cnt: u32,
     edit_line_num: &mut String,
+    error_popup_active: &mut bool,
 ) -> Result<()> {
     *action = true;
     let area = note_title_input(60, 20, f.area());
@@ -526,6 +528,27 @@ fn find_command() {}
 
 fn filter_command() {}
 
+fn error_command(
+    f: &mut Frame,
+    error_popup_active: bool,
+    error_title: String,
+    error_text: String,
+    key_event: KeyEvent,
+    cmd_text: &mut String,
+) -> Result<()> {
+    let area = note_title_input(60, 20, f.area());
+    let error_block = Block::default()
+        .title(error_title)
+        .border_type(BorderType::Rounded)
+        .borders(Borders::ALL);
+
+    let error_paragraph = Paragraph::new(Text::from(error_text)).block(error_block.clone());
+    f.render_widget(error_block, area);
+    f.render_widget(error_paragraph, area);
+
+    Ok(())
+}
+
 #[derive(Clone, Default)]
 struct NoteFormat {
     text: String,
@@ -547,11 +570,6 @@ fn main() -> Result<()> {
         .collect();
     let mut line_cnt = notes_raw.len() as u32;
     let mut notes: Vec<NoteFormat> = vec![];
-    // let mut items: Vec<ListItem> = notes_raw
-    // .iter()
-    // .map(|n| ListItem::new(n.as_str()))
-    // .collect();
-
     let mut items: Vec<ListItem<'_>> = vec![];
     let mut i = 0;
     while i + 1 < notes_raw.len() {
@@ -569,11 +587,17 @@ fn main() -> Result<()> {
         i += 2;
     }
 
-    let mut action = false;
-    let mut add_popup_active = 0;
+    let mut cmd_text:String = "j : page down | k : page up | q : quit | a : add note | e : edit command | Enter : edit selected note".to_string();
+
+    let mut action: bool = false; //TODO: Use union
+    let mut add_popup_active: i8 = 0;
     let mut edit_popup_active: i8 = 0;
     let mut edit_from_list_active: i8 = 0;
     let mut edit_line_num: String = "".to_string();
+    let mut error_popup_active: bool = false;
+
+    let mut error_title: String = "".to_string();
+    let mut error_text: String = "".to_string();
 
     let mut note = NoteFormat::default();
 
@@ -686,7 +710,7 @@ fn main() -> Result<()> {
         }
 
         terminal.draw(|f| {
-            draw_main_ui(f, &items, &mut list_state);
+            draw_main_ui(f, &items, &mut list_state, &mut cmd_text);
 
             let current_key = key_event.unwrap_or_else(|| {
                 if add_popup_active != 0 {
@@ -732,6 +756,17 @@ fn main() -> Result<()> {
                     &mut action,
                     line_cnt,
                     &mut edit_line_num,
+                    &mut error_popup_active,
+                );
+            }
+            if error_popup_active {
+                let _ = error_command(
+                    f,
+                    error_popup_active,
+                    error_title.clone(),
+                    error_text.clone(),
+                    current_key,
+                    &mut cmd_text.clone(),
                 );
             }
         })?;
