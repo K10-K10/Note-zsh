@@ -14,6 +14,7 @@ use ratatui::{
     Terminal,
 };
 
+use core::error;
 use std::fs::OpenOptions;
 use std::io::{Seek, Write};
 use std::{
@@ -95,10 +96,20 @@ fn draw_add_popup_title(
     key_event: KeyEvent,
     add_popup_active: &mut i8,
     action: &mut bool,
+    error_popup_active: &mut bool,
+    error_title: &mut String,
+    error_text: &mut String,
 ) {
     let area = note_title_input(60, 20, f.area());
+    let title_len = note.text.chars().count();
+    let title_style = if title_len > 100 {
+        Style::default().fg(Color::Red)
+    } else {
+        Style::default()
+    };
     let block = Block::default()
-        .title("New Note Title")
+        .title(format!("Edit note title ({} / 100)", title_len))
+        .title_style(title_style)
         .borders(Borders::ALL);
     let paragraph = Paragraph::new(note.text.as_str()).block(block);
     f.render_widget(paragraph, area);
@@ -106,9 +117,13 @@ fn draw_add_popup_title(
     match key_event.code {
         KeyCode::Enter => {
             if !note.text.trim().is_empty() && note.text.len() <= 101 {
-                //TODO: add error message
                 *add_popup_active = 2;
             } else {
+                if note.text.len() > 101 {
+                    *error_popup_active = true;
+                    *error_title = "Error".to_string();
+                    *error_text = "The title must not exceed 100 characters.".to_string();
+                }
                 *add_popup_active = 0;
                 *action = false;
             }
@@ -138,10 +153,21 @@ fn draw_add_popup_body(
     add_popup_active: &mut i8,
     action: &mut bool,
     line_cnt: &mut u32,
+    error_popup_active: &mut bool,
+    error_title: &mut String,
+    error_text: &mut String,
 ) -> Result<()> {
+    let body_len = note.body.chars().count();
+    let body_style = if body_len > 100 {
+        Style::default().fg(Color::Red)
+    } else {
+        Style::default()
+    };
     let block = Block::default()
-        .title("New Note Body")
+        .title(format!("Edit note body ({} / 100)", body_len))
+        .title_style(body_style)
         .borders(Borders::ALL);
+
     let paragraph = Paragraph::new(note.body.as_str())
         .block(block)
         .wrap(Wrap { trim: true })
@@ -163,6 +189,10 @@ fn draw_add_popup_body(
                 *note = NoteFormat::default();
                 *action = false;
                 *add_popup_active = 0;
+            } else {
+                *error_popup_active = true;
+                *error_title = "Error".to_string();
+                *error_text = "Please enter a body with 100 characters or fewer.".to_string();
             }
         }
         KeyCode::Esc => {
@@ -192,13 +222,26 @@ fn add_command(
     key_event: KeyEvent,
     action: &mut bool,
     line_cnt: &mut u32,
+    error_popup_active: &mut bool,
+    error_title: &mut String,
+    error_text: &mut String,
 ) -> Result<()> {
     *action = true;
     let area = note_body_input(60, 20, f.area());
 
     match *add_popup_active {
         1 => {
-            draw_add_popup_title(f, area, note, key_event, add_popup_active, action);
+            draw_add_popup_title(
+                f,
+                area,
+                note,
+                key_event,
+                add_popup_active,
+                action,
+                error_popup_active,
+                error_title,
+                error_text,
+            );
         }
         2 => {
             draw_add_popup_body(
@@ -211,6 +254,9 @@ fn add_command(
                 add_popup_active,
                 action,
                 line_cnt,
+                error_popup_active,
+                error_title,
+                error_text,
             )?;
         }
         _ => {}
@@ -272,6 +318,8 @@ fn edit_text_input(
     area: Rect,
     edit_line_num: &mut String,
     error_popup_active: &mut bool,
+    error_title: &mut String,
+    error_text: &mut String,
 ) {
     let line_num = match edit_line_num.trim().parse::<usize>() {
         Ok(n) if n >= 1 && n <= line_cnt as usize => n - 1,
@@ -284,20 +332,21 @@ fn edit_text_input(
     let selected_note: Option<&NoteFormat> = if line_num < notes.len() {
         Some(&notes[line_num])
     } else {
-        // eprintln!(
-        //     "line_num {} is out of range for notes length {}",
-        //     line_num,
-        //     notes.len()
-        // );
-
         *edit_line_num = String::new();
         *edit_popup_active = 1;
         *action = false;
         None
     };
 
+    let title_len = note.text.chars().count();
+    let title_style = if title_len > 100 {
+        Style::default().fg(Color::Red)
+    } else {
+        Style::default()
+    };
     let block = Block::default()
-        .title("Edit note title")
+        .title(format!("Edit note title ({} / 100)", title_len))
+        .title_style(title_style)
         .borders(Borders::ALL);
 
     let paragraph = Paragraph::new(note.text.as_str())
@@ -309,11 +358,11 @@ fn edit_text_input(
     match key_event.code {
         KeyCode::Enter => {
             if !note.text.trim().is_empty() && note.text.len() <= 101 {
-                //TODO: add error message
                 *edit_popup_active = 3;
             } else {
-                *edit_popup_active = 0;
-                *action = false;
+                *error_popup_active = true;
+                *error_title = "Error".to_string();
+                *error_text = "Please enter a title with 100 characters or fewer.".to_string();
             }
         }
         KeyCode::Esc => {
@@ -348,6 +397,9 @@ fn edit_body_input(
     line_cnt: u32,
     area: Rect,
     edit_line_num: &mut String,
+    error_popup_active: &mut bool,
+    error_title: &mut String,
+    error_text: &mut String,
 ) -> std::io::Result<()> {
     let mut line_num = match edit_line_num.trim().parse::<usize>() {
         Ok(n) if n >= 1 && n <= line_cnt as usize => n - 1,
@@ -358,8 +410,16 @@ fn edit_body_input(
         }
     };
     let selected_note = &notes[line_num];
+
+    let body_len = note.body.chars().count();
+    let body_style = if body_len > 100 {
+        Style::default().fg(Color::Red)
+    } else {
+        Style::default()
+    };
     let block = Block::default()
-        .title("Edit note body")
+        .title(format!("Edit note body ({} / 100)", body_len))
+        .title_style(body_style)
         .borders(Borders::ALL);
 
     let paragraph = Paragraph::new(note.body.as_str()).block(block);
@@ -392,6 +452,10 @@ fn edit_body_input(
                 note.text.clear();
                 note.body.clear();
                 edit_line_num.clear();
+            } else {
+                *error_popup_active = true;
+                *error_title = "Error".to_string();
+                *error_text = "Please enter a body with 100 characters or fewer.".to_string();
             }
         }
         KeyCode::Esc => {
@@ -425,6 +489,8 @@ fn edit_command(
     line_cnt: u32,
     edit_line_num: &mut String,
     error_popup_active: &mut bool,
+    error_title: &mut String,
+    error_text: &mut String,
 ) -> Result<()> {
     *action = true;
     let area = note_title_input(60, 20, f.area());
@@ -457,6 +523,8 @@ fn edit_command(
                 area,
                 edit_line_num,
                 error_popup_active,
+                error_title,
+                error_text,
             );
         }
         3 => {
@@ -471,6 +539,9 @@ fn edit_command(
                 line_cnt,
                 text_area,
                 edit_line_num,
+                error_popup_active,
+                error_title,
+                error_text,
             )?;
         }
         _ => {}
@@ -489,6 +560,8 @@ fn edit_from_list(
     line_cnt: u32,
     edit_line_num: &mut String,
     error_popup_active: &mut bool,
+    error_title: &mut String,
+    error_text: &mut String,
 ) -> Result<()> {
     *action = true;
     let area = note_title_input(60, 20, f.area());
@@ -507,6 +580,8 @@ fn edit_from_list(
                 area,
                 edit_line_num,
                 error_popup_active,
+                error_title,
+                error_text,
             );
         }
         3 => {
@@ -521,6 +596,9 @@ fn edit_from_list(
                 line_cnt,
                 text_area,
                 edit_line_num,
+                error_popup_active,
+                error_title,
+                error_text,
             )?;
         }
         _ => {}
@@ -541,16 +619,28 @@ fn error_command(
     key_event: KeyEvent,
     cmd_text: &mut String,
 ) -> Result<()> {
+    *error_popup_active = true;
     let area = note_title_input(60, 20, f.area());
     let error_block = Block::default()
         .title(error_title)
         .border_type(BorderType::Rounded)
         .borders(Borders::ALL);
 
-    let error_paragraph = Paragraph::new(Text::from(error_text)).block(error_block.clone());
+    let error_paragraph = Paragraph::new(Text::from(error_text))
+        .block(error_block.clone())
+        .style(Style::default().fg(Color::Red));
     f.render_widget(error_block, area);
-    f.render_widget(error_paragraph, area);
+    f.render_widget(error_paragraph, area); //PIN: error popup
 
+    match key_event.code {
+        KeyCode::Char('q') => {
+            *error_popup_active = false;
+        }
+        KeyCode::Esc => {
+            *error_popup_active = false;
+        }
+        _ => (),
+    }
     Ok(())
 }
 
@@ -735,6 +825,9 @@ fn main() -> Result<()> {
                     current_key,
                     &mut action,
                     &mut line_cnt,
+                    &mut error_popup_active,
+                    &mut error_title,
+                    &mut error_text,
                 );
             }
             if edit_popup_active != 0 {
@@ -749,6 +842,8 @@ fn main() -> Result<()> {
                     line_cnt,
                     &mut edit_line_num,
                     &mut error_popup_active,
+                    &mut error_title,
+                    &mut error_text,
                 );
             }
             if edit_from_list_active != 0 {
@@ -763,6 +858,8 @@ fn main() -> Result<()> {
                     line_cnt,
                     &mut edit_line_num,
                     &mut error_popup_active,
+                    &mut error_title,
+                    &mut error_text,
                 );
             }
             if error_popup_active {
