@@ -101,8 +101,15 @@ fn draw_add_popup_title(
     error_text: &mut String,
 ) {
     let area = note_title_input(60, 20, f.area());
+    let title_len = note.text.chars().count();
+    let title_style = if title_len > 100 {
+        Style::default().fg(Color::Red)
+    } else {
+        Style::default()
+    };
     let block = Block::default()
-        .title("New Note Title")
+        .title(format!("Edit note title ({} / 100)", title_len))
+        .title_style(title_style)
         .borders(Borders::ALL);
     let paragraph = Paragraph::new(note.text.as_str()).block(block);
     f.render_widget(paragraph, area);
@@ -150,9 +157,17 @@ fn draw_add_popup_body(
     error_title: &mut String,
     error_text: &mut String,
 ) -> Result<()> {
+    let body_len = note.body.chars().count();
+    let body_style = if body_len > 100 {
+        Style::default().fg(Color::Red)
+    } else {
+        Style::default()
+    };
     let block = Block::default()
-        .title("New Note Body")
+        .title(format!("Edit note body ({} / 100)", body_len))
+        .title_style(body_style)
         .borders(Borders::ALL);
+
     let paragraph = Paragraph::new(note.body.as_str())
         .block(block)
         .wrap(Wrap { trim: true })
@@ -323,8 +338,15 @@ fn edit_text_input(
         None
     };
 
+    let title_len = note.text.chars().count();
+    let title_style = if title_len > 100 {
+        Style::default().fg(Color::Red)
+    } else {
+        Style::default()
+    };
     let block = Block::default()
-        .title("Edit note title")
+        .title(format!("Edit note title ({} / 100)", title_len))
+        .title_style(title_style)
         .borders(Borders::ALL);
 
     let paragraph = Paragraph::new(note.text.as_str())
@@ -388,8 +410,16 @@ fn edit_body_input(
         }
     };
     let selected_note = &notes[line_num];
+
+    let body_len = note.body.chars().count();
+    let body_style = if body_len > 100 {
+        Style::default().fg(Color::Red)
+    } else {
+        Style::default()
+    };
     let block = Block::default()
-        .title("Edit note body")
+        .title(format!("Edit note body ({} / 100)", body_len))
+        .title_style(body_style)
         .borders(Borders::ALL);
 
     let paragraph = Paragraph::new(note.body.as_str()).block(block);
