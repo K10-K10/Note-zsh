@@ -271,6 +271,7 @@ fn edit_text_input(
     line_cnt: u32,
     area: Rect,
     edit_line_num: &mut String,
+    error_popup_active: &mut bool,
 ) {
     let line_num = match edit_line_num.trim().parse::<usize>() {
         Ok(n) if n >= 1 && n <= line_cnt as usize => n - 1,
@@ -423,6 +424,7 @@ fn edit_command(
     action: &mut bool,
     line_cnt: u32,
     edit_line_num: &mut String,
+    error_popup_active: &mut bool,
 ) -> Result<()> {
     *action = true;
     let area = note_title_input(60, 20, f.area());
@@ -454,6 +456,7 @@ fn edit_command(
                 line_cnt,
                 area,
                 edit_line_num,
+                error_popup_active,
             );
         }
         3 => {
@@ -503,6 +506,7 @@ fn edit_from_list(
                 line_cnt,
                 area,
                 edit_line_num,
+                error_popup_active,
             );
         }
         3 => {
@@ -530,7 +534,8 @@ fn filter_command() {}
 
 fn error_command(
     f: &mut Frame,
-    error_popup_active: bool,
+    action: &mut bool,
+    error_popup_active: &mut bool,
     error_title: String,
     error_text: String,
     key_event: KeyEvent,
@@ -743,6 +748,7 @@ fn main() -> Result<()> {
                     &mut action,
                     line_cnt,
                     &mut edit_line_num,
+                    &mut error_popup_active,
                 );
             }
             if edit_from_list_active != 0 {
@@ -762,7 +768,8 @@ fn main() -> Result<()> {
             if error_popup_active {
                 let _ = error_command(
                     f,
-                    error_popup_active,
+                    &mut action,
+                    &mut error_popup_active,
                     error_title.clone(),
                     error_text.clone(),
                     current_key,
