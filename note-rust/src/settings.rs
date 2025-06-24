@@ -45,3 +45,14 @@ pub fn note_body_input(percent_x: u16, r: Rect) -> Rect {
     let popup_y = r.y + (r.height - popup_height) / 2;
     Rect::new(popup_x, popup_y, popup_width, popup_height)
 }
+
+pub fn save_notes(notes: &Vec<NoteFormat>) -> std::io::Result<()> {
+    let mut file = std::fs::File::create(FILE_PATH)?;
+    for note in notes {
+        let text_line = format!("{:<100}\n", note.text);
+        let body_line = format!("{:<100}\n", note.body);
+        file.write_all(text_line.as_bytes())?;
+        file.write_all(body_line.as_bytes())?;
+    }
+    Ok(())
+}

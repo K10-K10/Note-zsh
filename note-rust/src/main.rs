@@ -18,22 +18,22 @@ use std::{
 };
 
 mod add;
+mod delete;
 mod draw_ui;
 mod edit;
 mod error;
+mod filter;
 mod movement;
 mod settings;
 
 use crate::add::add_command;
+use crate::delete::{delete_command, delete_command_check};
 use crate::draw_ui::draw_main_ui;
 use crate::edit::{edit_command, edit_from_list};
 use crate::error::error_command;
+use crate::filter::filter_command;
 use crate::movement::move_command;
 use crate::settings::{load_notes, NoteFormat};
-
-fn find_command() {}
-
-fn filter_command() {}
 
 fn main() -> Result<()> {
     color_eyre::install()?;
@@ -67,7 +67,7 @@ fn main() -> Result<()> {
         i += 2;
     }
 
-    let mut cmd_text:String = "j : page down | k : page up | q : quit | a : add note | e : edit command | Enter : edit selected note".to_string();
+    let mut cmd_text:String = "j : page down | k : page up | d : delete line | a : add note | e : edit command | Enter : edit selected note | (q esc) : quit ".to_string();
 
     let mut action: bool = false; //TODO: Use union
     let mut add_popup_active: i8 = 0;
@@ -76,6 +76,10 @@ fn main() -> Result<()> {
     let mut edit_line_num: String = "".to_string();
     let mut error_popup_active: bool = false;
     let mut move_popup_active: bool = false;
+    let mut delete_popup_active: i8 = 0;
+    let mut delete_line: String = "".to_string();
+    let mut filter_popup_active: bool = false;
+    let mut filter_query: String = "".to_string();
     let mut move_line: String = "".to_string();
     let mut error_title: String = "".to_string();
     let mut error_text: String = "".to_string();
@@ -107,16 +111,9 @@ fn main() -> Result<()> {
                             key_event = Some(key);
                         }
                     }
-                    KeyCode::Char('F') => {
+                    KeyCode::Char('d') => {
                         if !action {
-                            filter_command();
-                        } else {
-                            key_event = Some(key);
-                        }
-                    }
-                    KeyCode::Char('f') => {
-                        if !action {
-                            find_command();
+                            delete_popup_active = 1;
                         } else {
                             key_event = Some(key);
                         }
@@ -124,7 +121,6 @@ fn main() -> Result<()> {
                     KeyCode::Char('e') => {
                         if !action {
                             edit_popup_active = 1;
-                            //edit_command();
                         } else {
                             key_event = Some(key);
                         }
@@ -132,6 +128,13 @@ fn main() -> Result<()> {
                     KeyCode::Char('m') => {
                         if !action {
                             move_popup_active = true;
+                        } else {
+                            key_event = Some(key);
+                        }
+                    }
+                    KeyCode::Char('f') => {
+                        if !action {
+                            filter_popup_active = true;
                         } else {
                             key_event = Some(key);
                         }
@@ -273,6 +276,38 @@ fn main() -> Result<()> {
                     line_cnt,
                     &mut list_state,
                     &mut move_line,
+                );
+            }
+            if delete_popup_active == 1 {
+                let _ = delete_command(
+                    f,
+                    &mut list_state,
+                    current_key,
+                    &mut action,
+                    &mut delete_popup_active,
+                    &mut delete_line,
+                    line_cnt,
+                );
+            } else if delete_popup_active == 2 {
+                let _ = delete_command_check(
+                    f,
+                    &mut items,
+                    &mut notes,
+                    &mut list_state,
+                    current_key,
+                    &mut action,
+                    &mut delete_popup_active,
+                );
+            }
+            if filter_popup_active {
+                filter::filter_command(
+                    f,
+                    current_key,
+                    &notes,
+                    &mut items,
+                    &mut filter_query,
+                    &mut filter_popup_active,
+                    &mut action,
                 );
             }
         })?;
