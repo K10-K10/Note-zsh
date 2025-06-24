@@ -1,23 +1,10 @@
-use color_eyre::eyre::Result;
-use crossterm::{
-    event::{self, Event, KeyCode, KeyEvent},
-    execute,
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
-};
-use ratatui::{
-    backend::CrosstermBackend,
-    prelude::*,
-    style::{Color, Style},
-    text::{Text, ToText},
-    widgets::{Block, BorderType, Borders, List, ListItem, ListState, Paragraph},
-    Terminal,
-};
-use std::{
-    io::{self},
-    time::Duration,
-};
-
 use crate::settings::note_title_input;
+use crossterm::event::{KeyCode, KeyEvent};
+use ratatui::{
+    prelude::*,
+    text::Text,
+    widgets::{Block, BorderType, Borders, ListState, Paragraph},
+};
 
 pub fn move_command(
     f: &mut Frame,
