@@ -33,6 +33,5 @@ pub fn draw_main_ui(
         .borders(Borders::ALL);
 
     let cmd_paragraph = Paragraph::new(Text::from(cmd_text.to_text())).block(cmd_block.clone());
-    f.render_widget(cmd_block, cmd_block_area);
     f.render_widget(cmd_paragraph, cmd_block_area);
 }

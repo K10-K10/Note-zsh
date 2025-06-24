@@ -21,12 +21,14 @@ mod add;
 mod draw_ui;
 mod edit;
 mod error;
+mod movement;
 mod settings;
 
 use crate::add::add_command;
 use crate::draw_ui::draw_main_ui;
 use crate::edit::{edit_command, edit_from_list};
 use crate::error::error_command;
+use crate::movement::move_command;
 use crate::settings::{load_notes, NoteFormat};
 
 fn find_command() {}
@@ -73,7 +75,8 @@ fn main() -> Result<()> {
     let mut edit_from_list_active: i8 = 0;
     let mut edit_line_num: String = "".to_string();
     let mut error_popup_active: bool = false;
-
+    let mut move_popup_active: bool = false;
+    let mut move_line: String = "".to_string();
     let mut error_title: String = "".to_string();
     let mut error_text: String = "".to_string();
 
@@ -122,6 +125,13 @@ fn main() -> Result<()> {
                         if !action {
                             edit_popup_active = 1;
                             //edit_command();
+                        } else {
+                            key_event = Some(key);
+                        }
+                    }
+                    KeyCode::Char('m') => {
+                        if !action {
+                            move_popup_active = true;
                         } else {
                             key_event = Some(key);
                         }
@@ -252,6 +262,17 @@ fn main() -> Result<()> {
                     error_title.clone(),
                     error_text.clone(),
                     current_key,
+                );
+            }
+            if move_popup_active {
+                let _ = move_command(
+                    f,
+                    current_key,
+                    &mut action,
+                    &mut move_popup_active,
+                    line_cnt,
+                    &mut list_state,
+                    &mut move_line,
                 );
             }
         })?;
