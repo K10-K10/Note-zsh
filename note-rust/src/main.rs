@@ -80,6 +80,7 @@ fn main() -> Result<()> {
     let mut delete_line: String = "".to_string();
     let mut filter_popup_active: bool = false;
     let mut filter_query: String = "".to_string();
+    let mut filter_result: Vec<ListItem<'_>> = vec![];
     let mut move_line: String = "".to_string();
     let mut error_title: String = "".to_string();
     let mut error_text: String = "".to_string();
@@ -140,7 +141,7 @@ fn main() -> Result<()> {
                         }
                     }
                     KeyCode::Esc => {
-                        if !action {
+                        if !action && !filter_popup_active {
                             break;
                         } else {
                             key_event = Some(key);
@@ -201,8 +202,11 @@ fn main() -> Result<()> {
         }
 
         terminal.draw(|f| {
-            draw_main_ui(f, &items, &mut list_state, &mut cmd_text);
-
+            if filter_popup_active {
+                draw_main_ui(f, &filter_result, &mut list_state, &mut cmd_text);
+            } else {
+                draw_main_ui(f, &items, &mut list_state, &mut cmd_text);
+            }
             let current_key = key_event.unwrap_or_else(|| {
                 if add_popup_active != 0 {
                     KeyEvent::new(KeyCode::Null, event::KeyModifiers::NONE)
@@ -305,9 +309,9 @@ fn main() -> Result<()> {
                     current_key,
                     &notes,
                     &mut items,
+                    &mut filter_result,
                     &mut filter_query,
                     &mut filter_popup_active,
-                    &mut action,
                 );
             }
         })?;

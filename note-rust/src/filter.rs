@@ -11,11 +11,10 @@ pub fn filter_command<'a>(
     key: KeyEvent,
     notes: &Vec<NoteFormat>,
     items: &mut Vec<ListItem<'a>>,
+    filter_result: &mut Vec<ListItem<'a>>,
     query: &mut String,
     filter_popup_active: &mut bool,
-    action: &mut bool,
 ) {
-    *action = true;
     let area = note_title_input(60, f.area());
     let block = Block::default()
         .title("Filter notes")
@@ -26,10 +25,10 @@ pub fn filter_command<'a>(
 
     match key.code {
         KeyCode::Enter => {
-            items.clear();
+            filter_result.clear();
             for (i, note) in notes.iter().enumerate() {
                 if note.text.contains(query.as_str()) || note.body.contains(query.as_str()) {
-                    items.push(ListItem::new(format!(
+                    filter_result.push(ListItem::new(format!(
                         "{}: \"{}\" - \"{}\"",
                         i + 1,
                         note.text,
@@ -37,8 +36,6 @@ pub fn filter_command<'a>(
                     )));
                 }
             }
-            *filter_popup_active = false;
-            *action = false;
             query.clear();
         }
         KeyCode::Backspace => {
@@ -46,7 +43,7 @@ pub fn filter_command<'a>(
         }
         KeyCode::Esc => {
             *filter_popup_active = false;
-            *action = false;
+            filter_result.clear();
             query.clear();
         }
         KeyCode::Char(c) => {
