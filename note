@@ -147,7 +147,7 @@ if [[ "$1" == "edit" ]]; then
   if [[ -z "$3" ]]; then
     echo "Current Title: $title"
     echo "Current Body: $body"
-    echo -n "Enter new title (leave empty to keep current): "
+    echo -n "Enter new title (leave empty to keep current): $title"
     read new_title
     echo -n "Enter new body (leave empty to keep current): "
     read new_body

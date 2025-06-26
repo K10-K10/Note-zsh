@@ -1,101 +1,86 @@
 # Note - zsh
 
-Simple note-taking command line tool in Zsh.
-
----
+Simple note-taking command-line tool written in Zsh.
 
 ## Installation
 
-### 1.Clone the repo
+### 1. Clone the repository
 
-HTTPS
+**HTTPS**
 
 ```sh
-git clone --depth=1 https://github.com/K10-K10/note-zsh.git
+git clone --depth=1 https://github.com/K10-K10/Note-zsh.git
 ```
 
-SSH
+**SSH**
 
 ```sh
 git clone --depth=1 git@github.com:K10-K10/Note-zsh.git
 ```
 
-### 2.Add to Path
+### 2. Add to your PATH
 
-Edit your ~/.zshrc to include the path:
-
-```sh
-find ~/ -name  Note-zsh # check the path
-```
+Edit your `~/.zshrc`:
 
 ```sh
+find ~ -name Note-zsh  # Check the path
+
 echo 'export PATH="<path>:$PATH"' >> ~/.zshrc
 source ~/.zshrc
 ```
 
-if You use the Windows OS
-
-```sh
-cd <Note-zsh's path>
-sed -i 's/\r$//' note
-```
-
 Done!
 
-## Use it from anywhere
+---
+
+## Usage
 
 ```sh
-note add <Title> <Note body>
-note list
+note add <Title> <Note body>  # Add a note
+note list                     # List all notes
+note del <number>            # Delete a note
+note find <keyword>          # Search notes
+note edit <number> -t "new"  # Edit title
+note edit <number> -b "body" # Edit body
+note help                    # Show help
 ```
+
+---
 
 ## Commands
 
-| Command                                      | Description                                                         | Option                                                          |
-| -------------------------------------------- | ------------------------------------------------------------------- | --------------------------------------------------------------- |
-| note list                                    | List all saved notes                                                | \<Title> filter by title                                        |
-| note add \<Title> \<Note body>               | Add a new note. You can leave the note body empty.                  |                                                                 |
-| note del \<number>                           | Delete note by number                                               |                                                                 |
-| note del                                     | all Delete all notes (with confirmation)                            |                                                                 |
-| note find \<keyword>                         | Search notes for the keyword (case-insensitive, highlights matches) | -t, -b (Search just in tab,body)                                |
-| note edit \<number> \<new title> \<new body> | Edit note that already save in Note.                                | -t \<new title> , -b \<new body> (Just change title, note body) |
-| note help                                    | Show help message                                                   |                                                                 |
+| Command                        | Description                                               | Options                                |
+| ------------------------------ | --------------------------------------------------------- | -------------------------------------- |
+| `note list`                    | List all saved notes                                      | `<Title>` – filter by title            |
+| `note add <Title> <Note body>` | Add a new note (body is optional)                         |                                        |
+| `note del <number>`            | Delete a note by number                                   |                                        |
+| `note del`                     | Delete **all** notes (with confirmation)                  |                                        |
+| `note find <keyword>`          | Search for a keyword (case-insensitive, highlights match) | `-t`, `-b` – search in title/body only |
+| `note edit <number>`           | Edit an existing note                                     | `-t <new title>`, `-b <new body>`      |
+| `note help`                    | Display usage help                                        |                                        |
+
+---
 
 ## Demo
 
-- Add Note
-
 ```sh
-$ note add test test2
-Note: Added "test" - "test2"
-```
+$ note add test "this is a test"
+Note: Added "test" - "this is a test"
 
-- You cna select the empty note body
-
-```sh
-$ note add hoge
-Note: Added "hoge" - ""
-```
-
-- Show notes
-
-```sh
 $ note list
 Note:
-0: test - test2
-1: hoge -
+0: test - this is a test
+
+$ note find test
+Note:
+0: test - this is a **test**
+
+$ note del 0
+Note: Deleted note number 0
 ```
 
-- Delete note
+---
 
-```sh
-$ note del 1
-Note: Deleted note number 1
-```
+## License
 
-- Find keyword
-
-```sh
-$ note del test
-7: test - test hoge
-```
+This project is licensed under the [MIT License](LICENSE).
