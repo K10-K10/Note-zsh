@@ -20,7 +20,6 @@ fn edit_line_input(
     area: Rect,
     edit_line_num: &mut String,
 ) {
-    //TODO: when it is started, edit_line_num is set 0
     let block = Block::default()
         .title("Edit note line number")
         .borders(Borders::ALL);
@@ -39,7 +38,7 @@ fn edit_line_input(
         KeyCode::Esc => {
             *edit_popup_active = 0;
             *action = false;
-            edit_line_num.clear(); //TODO: The variable EDIT_LINE_NUM is not clean.
+            edit_line_num.clear();
         }
         KeyCode::Backspace => {
             edit_line_num.pop();

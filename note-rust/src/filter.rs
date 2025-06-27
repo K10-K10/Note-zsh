@@ -10,7 +10,6 @@ pub fn filter_command<'a>(
     f: &mut Frame,
     key: KeyEvent,
     notes: &Vec<NoteFormat>,
-    items: &mut Vec<ListItem<'a>>,
     filter_result: &mut Vec<ListItem<'a>>,
     query: &mut String,
     filter_popup_active: &mut bool,

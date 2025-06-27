@@ -31,7 +31,6 @@ use crate::delete::{delete_command, delete_command_check};
 use crate::draw_ui::draw_main_ui;
 use crate::edit::{edit_command, edit_from_list};
 use crate::error::error_command;
-use crate::filter::filter_command;
 use crate::movement::move_command;
 use crate::settings::{load_notes, NoteFormat};
 
@@ -308,7 +307,6 @@ fn main() -> Result<()> {
                     f,
                     current_key,
                     &notes,
-                    &mut items,
                     &mut filter_result,
                     &mut filter_query,
                     &mut filter_popup_active,
