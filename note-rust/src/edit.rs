@@ -45,7 +45,7 @@ fn edit_line_input(
         KeyCode::Backspace => {
             edit_line_num.pop();
         }
-        KeyCode::Char(c) => {
+        KeyCode::Char(c) if c.is_ascii_digit() => {
             edit_line_num.push(c);
         }
         _ => {}
