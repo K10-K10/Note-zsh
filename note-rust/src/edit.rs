@@ -115,6 +115,7 @@ pub fn edit_text_input(
             *action = false;
             *edit_popup_active = 0;
             note.text.clear();
+            edit_line_num.clear();
         }
         KeyCode::Backspace => {
             note.text.pop();
@@ -209,6 +210,8 @@ pub fn edit_body_input(
             *edit_popup_active = 0;
             *action = false;
             note.body.clear();
+            note.text.clear();
+            edit_line_num.clear();
         }
         KeyCode::Backspace => {
             note.body.pop();
@@ -263,7 +266,7 @@ pub fn edit_command(
                 key_event,
                 action,
                 line_cnt,
-                area,
+                text_area,
                 edit_line_num,
                 error_popup_active,
                 error_title,

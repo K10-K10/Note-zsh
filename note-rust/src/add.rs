@@ -19,7 +19,7 @@ pub fn draw_add_popup_title(
     error_title: &mut String,
     error_text: &mut String,
 ) {
-    let area = note_title_input(60, f.area());
+    let area = note_body_input(60, f.area());
     let title_len = note.text.chars().count();
     let title_style = if title_len > 100 {
         Style::default().fg(Color::Red)
