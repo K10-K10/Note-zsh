@@ -32,7 +32,7 @@ pub fn append_note_to_file(note: &str, body: &str) -> Result<()> {
 
 pub fn note_title_input(percent_x: u16, r: Rect) -> Rect {
     let popup_width = r.width * percent_x / 150;
-    let popup_height = 3;
+    let popup_height = 9;
     let popup_x = r.x + (r.width - popup_width) / 2;
     let popup_y = r.y + (r.height - popup_height) / 2;
     Rect::new(popup_x, popup_y, popup_width, popup_height)

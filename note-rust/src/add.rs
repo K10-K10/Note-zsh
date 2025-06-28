@@ -27,10 +27,12 @@ pub fn draw_add_popup_title(
         Style::default()
     };
     let block = Block::default()
-        .title(format!("Edit note title ({} / 100)", title_len))
+        .title(format!("Add note title ({} / 100)", title_len))
         .title_style(title_style)
         .borders(Borders::ALL);
-    let paragraph = Paragraph::new(note.text.as_str()).block(block);
+    let paragraph = Paragraph::new(note.text.as_str())
+        .block(block)
+        .wrap(Wrap { trim: false });
     f.render_widget(paragraph, area);
 
     match key_event.code {
@@ -82,11 +84,12 @@ pub fn draw_add_popup_body(
         Style::default()
     };
     let block = Block::default()
-        .title(format!("Edit note body ({} / 100)", body_len))
+        .title(format!("Add note body ({} / 100)", body_len))
         .title_style(body_style)
         .borders(Borders::ALL);
 
     let paragraph = Paragraph::new(note.body.as_str())
+        .wrap(Wrap { trim: false })
         .block(block)
         .wrap(Wrap { trim: true })
         .alignment(Alignment::Left);

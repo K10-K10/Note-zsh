@@ -134,6 +134,7 @@ fn main() -> Result<()> {
                     }
                     KeyCode::Char('f') => {
                         if !action {
+                            filter_query = String::new();
                             filter_popup_active = true;
                         } else {
                             key_event = Some(key);

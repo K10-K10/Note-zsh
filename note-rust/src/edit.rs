@@ -23,7 +23,9 @@ fn edit_line_input(
     let block = Block::default()
         .title("Edit note line number")
         .borders(Borders::ALL);
-    let paragraph = Paragraph::new(edit_line_num.as_str()).block(block);
+    let paragraph = Paragraph::new(edit_line_num.as_str())
+        .block(block)
+        .wrap(Wrap { trim: false });
     f.render_widget(paragraph, area);
     match key_event.code {
         KeyCode::Enter => {
@@ -93,6 +95,7 @@ pub fn edit_text_input(
         .borders(Borders::ALL);
 
     let paragraph = Paragraph::new(note.text.as_str())
+        .wrap(Wrap { trim: false })
         .block(block)
         .wrap(Wrap { trim: true })
         .alignment(Alignment::Left);
@@ -165,7 +168,9 @@ pub fn edit_body_input(
         .title_style(body_style)
         .borders(Borders::ALL);
 
-    let paragraph = Paragraph::new(note.body.as_str()).block(block);
+    let paragraph = Paragraph::new(note.body.as_str())
+        .block(block)
+        .wrap(Wrap { trim: false });
     f.render_widget(paragraph, area);
     match key_event.code {
         KeyCode::Enter => {
