@@ -1,6 +1,9 @@
 # Note - zsh  
 Simple note-taking command line tool in Zsh.
 
+> [!NOTE]
+> I will create a CLI tool.
+
 
 ---
 
@@ -20,11 +23,11 @@ Edit your ~/.zshrc to include the path:
 ```sh
 find ~/ -name  Note-zsh # check the path
 
-echo 'export PATH="<path>:$PATH"' >> ~/.zshrc 
+echo 'export PATH="<path>:$PATH"' >> ~/.zshrc
 source ~/.zshrc
 ```
 
-Done! 
+Done!
 
 ## Use it from anywhere
 ```sh
@@ -61,7 +64,7 @@ Note: Added "hoge" - ""
 $ note list
 Note:
 0: test - test2
-1: hoge - 
+1: hoge -
 ```
 
 - Delete note
