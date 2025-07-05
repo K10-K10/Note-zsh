@@ -8,6 +8,7 @@ use ratatui::{
     backend::CrosstermBackend,
     prelude::*,
     style::{Color, Style},
+    symbols::line,
     text::{Text, ToText},
     widgets::{Block, BorderType, Borders, List, ListItem, ListState, Paragraph},
     Terminal,
