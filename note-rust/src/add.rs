@@ -99,7 +99,6 @@ pub fn draw_add_popup_body(
     match key_event.code {
         KeyCode::Enter => {
             if note.body.len() <= 101 {
-                //TODO: add error message
                 *line_cnt = (notes.len() + 1) as u32;
                 append_note_to_file(&note.text, &note.body)?;
                 items.push(ListItem::new(format!(
