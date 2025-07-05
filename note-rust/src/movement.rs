@@ -2,6 +2,7 @@ use crate::settings::note_title_input;
 use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{
     prelude::*,
+    symbols::line,
     text::Text,
     widgets::{Block, BorderType, Borders, ListState, Paragraph},
 };
@@ -17,8 +18,9 @@ pub fn move_command(
 ) -> std::io::Result<()> {
     *action = true;
     let area = note_title_input(60, f.area());
+    let half_line_cnt = line_cnt / 2;
     let move_block = Block::default()
-        .title("Move to line")
+        .title(format!("Move to line ({} / {})", move_line, half_line_cnt))
         .border_type(BorderType::Rounded)
         .borders(Borders::ALL);
     let cmd_paragraph = Paragraph::new(Text::from(move_line.as_str())).block(move_block);
@@ -32,7 +34,6 @@ pub fn move_command(
                     *action = false;
                     move_line.clear();
                 } else {
-                    //TODO: popup error
                     *move_popup_active = false;
                     *action = false;
                     move_line.clear();
