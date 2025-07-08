@@ -179,3 +179,8 @@ if [[ "$1" == "help" ]]; then
   echo "  --version, -v           Show script version"
   exit 0
 fi
+
+if [[ "$1" == "tui" ]]; then
+  cargo run --manifest-path="$HOME/projects/zsh/Note-zsh/note-rust/Cargo.toml" --release
+  exit 0
+fi
