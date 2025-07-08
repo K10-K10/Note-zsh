@@ -63,7 +63,9 @@ fn main() -> Result<()> {
         i += 2;
     }
 
-    let cmd_text:String = "j : page down | k : page up | d : delete line | a : add note | e : edit command | Enter : edit selected note | (q esc) : quit ".to_string();
+    let cmd_text: String =
+        "v1.0.1| d : delete line | a : add note | e : edit  | Enter : edit selected note | (q esc) : quit "
+            .to_string();
 
     let mut action: bool = false; //TODO: Use union
     let mut add_popup_active: i8 = 0;
