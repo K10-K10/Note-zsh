@@ -1,14 +1,15 @@
 use ratatui::{
     prelude::*,
     style::{Color, Style},
-    text::{Text, ToText},
+    text::Text,
     widgets::{Block, BorderType, Borders, List, ListItem, ListState, Paragraph},
 };
 pub fn draw_main_ui(
     f: &mut Frame,
     items: &Vec<ListItem>,
     list_state: &mut ListState,
-    cmd_text: &mut String,
+    cmd_text: &str,
+    filter_query: &str,
 ) {
     let size = f.area();
 
@@ -26,12 +27,14 @@ pub fn draw_main_ui(
         .highlight_style(Style::default().bg(Color::Blue));
 
     f.render_stateful_widget(list, list_block_area, list_state);
+    let mut cmd_display = cmd_text.to_string();
+    cmd_display.push_str(&format!(" | Filtering: \"{}\"", filter_query));
 
     let cmd_block = Block::default()
         .title("")
         .border_type(BorderType::Rounded)
         .borders(Borders::ALL);
 
-    let cmd_paragraph = Paragraph::new(Text::from(cmd_text.to_text())).block(cmd_block.clone());
+    let cmd_paragraph = Paragraph::new(Text::from(cmd_display)).block(cmd_block.clone());
     f.render_widget(cmd_paragraph, cmd_block_area);
 }

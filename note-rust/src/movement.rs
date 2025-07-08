@@ -2,7 +2,6 @@ use crate::settings::note_title_input;
 use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{
     prelude::*,
-    symbols::line,
     text::Text,
     widgets::{Block, BorderType, Borders, ListState, Paragraph},
 };

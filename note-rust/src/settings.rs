@@ -1,7 +1,6 @@
 use color_eyre::eyre::Result;
 use ratatui::prelude::*;
 use std::fs::OpenOptions;
-use std::i8;
 use std::io::Write;
 use std::{
     fs::File,
@@ -58,10 +57,10 @@ pub fn save_notes(notes: &Vec<NoteFormat>) -> std::io::Result<()> {
     Ok(())
 }
 
-pub struct command_popup_active {
-    add: i8,
-    edit: i8,
-    error: i8,
-    filter: i8,
-    movemexnt: i8,
-}
+// pub struct command_popup_active {
+//     add: i8,
+//     edit: i8,
+//     error: i8,
+//     filter: i8,
+//     movemexnt: i8,
+// }

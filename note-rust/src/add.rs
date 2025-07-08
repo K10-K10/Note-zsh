@@ -7,7 +7,7 @@ use ratatui::{
     widgets::{Block, Borders, ListItem, Paragraph, Wrap},
 };
 
-use crate::settings::{append_note_to_file, note_body_input, note_title_input, NoteFormat};
+use crate::settings::{append_note_to_file, note_body_input, NoteFormat};
 
 pub fn draw_add_popup_title(
     f: &mut Frame,

@@ -6,11 +6,7 @@ use crossterm::{
 };
 use ratatui::{
     backend::CrosstermBackend,
-    prelude::*,
-    style::{Color, Style},
-    symbols::line,
-    text::{Text, ToText},
-    widgets::{Block, BorderType, Borders, List, ListItem, ListState, Paragraph},
+    widgets::{ListItem, ListState},
     Terminal,
 };
 use std::{
@@ -67,7 +63,7 @@ fn main() -> Result<()> {
         i += 2;
     }
 
-    let mut cmd_text:String = "j : page down | k : page up | d : delete line | a : add note | e : edit command | Enter : edit selected note | (q esc) : quit ".to_string();
+    let cmd_text:String = "j : page down | k : page up | d : delete line | a : add note | e : edit command | Enter : edit selected note | (q esc) : quit ".to_string();
 
     let mut action: bool = false; //TODO: Use union
     let mut add_popup_active: i8 = 0;
@@ -204,9 +200,9 @@ fn main() -> Result<()> {
 
         terminal.draw(|f| {
             if filter_popup_active {
-                draw_main_ui(f, &filter_result, &mut list_state, &mut cmd_text);
+                draw_main_ui(f, &filter_result, &mut list_state, &cmd_text, &filter_query);
             } else {
-                draw_main_ui(f, &items, &mut list_state, &mut cmd_text);
+                draw_main_ui(f, &items, &mut list_state, &cmd_text, &filter_query);
             }
             let current_key = key_event.unwrap_or_else(|| {
                 if add_popup_active != 0 {
