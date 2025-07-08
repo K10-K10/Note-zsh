@@ -23,6 +23,7 @@ pub fn filter_command<'a>(
     f.render_widget(para, area);
 
     match key.code {
+        //TODO: Some dellay is happened when second cher input
         KeyCode::Enter => {
             filter_result.clear();
             for (i, note) in notes.iter().enumerate() {
