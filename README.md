@@ -1,27 +1,34 @@
-# Note - zsh  
+# Note - zsh
+
 Simple note-taking command line tool in Zsh.
 
-> [!NOTE]
+> \[!NOTE]
 > I will create a CLI tool.
-
 
 ---
 
 ## Installation
 
-### 1.Clone the repo
+### 1. Clone the repo
+
 HTTPS
+
 ```sh
 git clone --depth=1 https://github.com/K10-K10/note-zsh.git
 ```
+
 SSH
+
 ```sh
 git clone --depth=1 git@github.com:K10-K10/Note-zsh.git
 ```
-### 2.Add to Path
-Edit your ~/.zshrc to include the path:
+
+### 2. Add to Path
+
+Edit your \~/.zshrc to include the path:
+
 ```sh
-find ~/ -name  Note-zsh # check the path
+find ~/ -name Note-zsh # check the path
 
 echo 'export PATH="<path>:$PATH"' >> ~/.zshrc
 source ~/.zshrc
@@ -30,36 +37,42 @@ source ~/.zshrc
 Done!
 
 ## Use it from anywhere
+
 ```sh
 note add <Title> <Note body>
 note list
 ```
 
 ## Commands
-| Command                                      | Description                                                         | Option                                                          |
-| -------------------------------------------- | ------------------------------------------------------------------- | --------------------------------------------------------------- |
-| note list                                    | List all saved notes                                                | \<Title> filter by title                                        |
-| note add \<Title> \<Note body>               | Add a new note. You can leave the note body empty.                  |                                                                 |
-| note del \<number>                           | Delete note by number                                               |                                                                 |
-| note del                                     | all	Delete all notes (with confirmation)                            |                                                                 |
-| note find \<keyword>                         | Search notes for the keyword (case-insensitive, highlights matches) | -t, -b (Search just in tab,body)                                |
-| note edit \<number> \<new title> \<new body> | Edit note that already save in Note.                                | -t \<new title> , -b \<new body> (Just change title, note body) |
-| note help                                    | Show help message                                                   |                                                                 |
+
+| Command                                   | Description                                                         | Option                                                        |
+| ----------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------- |
+| note list                                 | List all saved notes                                                | <Title> filter by title                                       |
+| note add <Title> <Note body>              | Add a new note. You can leave the note body empty.                  |                                                               |
+| note del <number>                         | Delete note by number                                               |                                                               |
+| note del                                  | all	Delete all notes (with confirmation)                            |                                                               |
+| note find <keyword>                       | Search notes for the keyword (case-insensitive, highlights matches) | -t, -b (Search just in tab,body)                              |
+| note edit <number> <new title> <new body> | Edit note that already save in Note.                                | -t <new title> , -b <new body> (Just change title, note body) |
+| note help                                 | Show help message                                                   |                                                               |
 
 ## Demo
-- Add Note
+
+* Add Note
+
 ```sh
 $ note add test test2
 Note: Added "test" - "test2"
 ```
 
-- You cna select the empty note body
+* You can omit the note body
+
 ```sh
 $ note add hoge
 Note: Added "hoge" - ""
 ```
 
-- Show notes
+* Show notes
+
 ```sh
 $ note list
 Note:
@@ -67,14 +80,55 @@ Note:
 1: hoge -
 ```
 
-- Delete note
+* Delete note
+
 ```sh
 $ note del 1
 Note: Deleted note number 1
 ```
 
-- Find keyword
+* Find keyword
+
 ```sh
-$ note del test
+$ note find test
 7: test - test hoge
 ```
+
+## CUI (TUI version)
+
+TUI version is available.
+
+![TUI Image](images/CUI-main.png)
+
+## Cargo Setup (for Rust version)
+
+### Cargo.toml
+
+```toml
+[package]
+name = "note-tui"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ratatui = "0.26"
+crossterm = "0.27"
+color-eyre = "0.6"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+```
+
+### Run
+
+```sh
+cargo run
+```
+
+### Release
+
+```sh
+cargo build --release
+./target/release/note-tui
+```
+
+Make sure Rust is installed from [https://rustup.rs](https://rustup.rs)
