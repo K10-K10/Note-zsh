@@ -1,9 +1,9 @@
 # Note - zsh
 
-Simple note-taking command line tool in Zsh.
+Simple note-taking command line tool in Zsh + TUI written in Rust.
 
 > \[!NOTE]
-> I will create a CLI tool.
+> CLI & TUI note-taking tool.
 
 ---
 
@@ -23,9 +23,9 @@ SSH
 git clone --depth=1 git@github.com:K10-K10/Note-zsh.git
 ```
 
-### 2. Add to Path
+### 2. Add to PATH
 
-Edit your \~/.zshrc to include the path:
+Edit your `~/.zshrc` to include the path:
 
 ```sh
 find ~/ -name Note-zsh # check the path
@@ -34,101 +34,94 @@ echo 'export PATH="<path>:$PATH"' >> ~/.zshrc
 source ~/.zshrc
 ```
 
-Done!
+---
 
-## Use it from anywhere
+## CLI Usage (Zsh script)
+
+Use it from anywhere:
 
 ```sh
 note add <Title> <Note body>
 note list
 ```
 
-## Commands
+### Commands
 
-| Command                                   | Description                                                         | Option                                                        |
-| ----------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------- |
-| note list                                 | List all saved notes                                                | <Title> filter by title                                       |
-| note add <Title> <Note body>              | Add a new note. You can leave the note body empty.                  |                                                               |
-| note del <number>                         | Delete note by number                                               |                                                               |
-| note del                                  | all	Delete all notes (with confirmation)                            |                                                               |
-| note find <keyword>                       | Search notes for the keyword (case-insensitive, highlights matches) | -t, -b (Search just in tab,body)                              |
-| note edit <number> <new title> <new body> | Edit note that already save in Note.                                | -t <new title> , -b <new body> (Just change title, note body) |
-| note help                                 | Show help message                                                   |                                                               |
+| Command                                     | Description                                         | Option                                    |
+| ------------------------------------------- | --------------------------------------------------- | ----------------------------------------- |
+| `note list`                                 | List all saved notes                                | `<Title>` filter by title                 |
+| `note add <Title> <Note body>`              | Add a new note. You can leave the note body empty.  |                                           |
+| `note del <number>`                         | Delete note by number                               |                                           |
+| `note del all`                              | Delete all notes (with confirmation)                |                                           |
+| `note find <keyword>`                       | Search notes (case-insensitive, highlights matches) | `-t`, `-b` (Search only in title or body) |
+| `note edit <number> <new title> <new body>` | Edit note                                           | `-t <new title>`, `-b <new body>`         |
+| `note tui`                                  | Launch TUI interface                                |                                           |
+| `note help`                                 | Show help message                                   |                                           |
+
+---
+
+## TUI
+
+You can also run the interactive TUI interface with:
+
+```sh
+note tui
+```
+
+![CUI main](images/CUI-main.png)
+
+Features:
+
+* List and navigate notes
+* Add, edit, delete notes interactively
+* Filter/search notes
+* Error messages and confirmation dialogs
+
+---
 
 ## Demo
-
-* Add Note
 
 ```sh
 $ note add test test2
 Note: Added "test" - "test2"
-```
 
-* You can omit the note body
-
-```sh
 $ note add hoge
 Note: Added "hoge" - ""
-```
 
-* Show notes
-
-```sh
 $ note list
 Note:
 0: test - test2
 1: hoge -
-```
 
-* Delete note
-
-```sh
 $ note del 1
 Note: Deleted note number 1
-```
 
-* Find keyword
-
-```sh
 $ note find test
-7: test - test hoge
+0: test - test2
+
+$ note tui
+# Launches the interactive UI
 ```
 
-## CUI (TUI version)
+---
 
-TUI version is available.
+## Cargo (TUI)
 
-![TUI Image](images/CUI-main.png)
-
-## Cargo Setup (for Rust version)
-
-### Cargo.toml
-
-```toml
-[package]
-name = "note-tui"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-ratatui = "0.26"
-crossterm = "0.27"
-color-eyre = "0.6"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-```
-
-### Run
+To build TUI manually:
 
 ```sh
-cargo run
+cd note-rust
+cargo run --release
 ```
 
-### Release
+Make sure you have `Rust` installed:
 
 ```sh
-cargo build --release
-./target/release/note-tui
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
-Make sure Rust is installed from [https://rustup.rs](https://rustup.rs)
+---
+
+## License
+
+MIT
