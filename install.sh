@@ -2,11 +2,11 @@
 
 INSTALL_DIR="$HOME/.note-zsh"
 BIN_DIR="$HOME/.local/bin"
-ARCHIVE_URL="https://github.com/yourname/Note-zsh/releases/latest/download/Note-zsh.tar.gz"
+ARCHIVE_URL="https://github.com/K10-K10/Note-zsh/releases/latest/download/Note-zsh.tar.gz"
 mkdir -p "$INSTALL_DIR" "$BIN_DIR"
 echo "Downloading Note-zsh..."
 curl -L "$ARCHIVE_URL" | tar -xz -C "$INSTALL_DIR"
-cp "$INSTALL_DIR/note-rust/note-rust" "$BIN_DIR/note"
+cp "$INSTALL_DIR/note-rust/target/release/note-rust" "$BIN_DIR/note"
 chmod +x "$BIN_DIR/note"
 
 ZSHRC="$HOME/.zshrc"
