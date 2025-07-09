@@ -7,7 +7,7 @@ use std::{
     io::{BufRead, BufReader},
 };
 
-pub static FILE_PATH: &str = "../note.txt";
+pub static FILE_PATH: &str = "./note.txt";
 
 #[derive(Clone, Default)]
 pub struct NoteFormat {
