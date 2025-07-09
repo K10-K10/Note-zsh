@@ -29,7 +29,7 @@ use crate::draw_ui::draw_main_ui;
 use crate::edit::{edit_command, edit_from_list};
 use crate::error::error_command;
 use crate::movement::move_command;
-use crate::settings::{load_notes, NoteFormat};
+use crate::settings::{info_command, load_notes, NoteFormat};
 
 fn main() -> Result<()> {
     color_eyre::install()?;
@@ -62,10 +62,11 @@ fn main() -> Result<()> {
         notes.push(note);
         i += 2;
     }
-
-    let cmd_text: String =
-        "v1.0.1| d : delete line | a : add note | e : edit  | Enter : edit selected note | (q esc) : quit "
-            .to_string();
+    let version = info_command().unwrap_or("unknown".to_string());
+    let cmd_text = format!(
+    " {} | d : delete line | a : add note | e : edit | Enter : edit selected note | (q esc) : quit",
+    version
+);
 
     let mut action: bool = false; //TODO: Use union
     let mut add_popup_active: i8 = 0;

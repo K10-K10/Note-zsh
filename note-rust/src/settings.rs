@@ -7,7 +7,36 @@ use std::{
     io::{BufRead, BufReader},
 };
 
-pub static FILE_PATH: &str = "./note.txt";
+pub static FILE_PATH: &str = "../note.txt";
+static INFO_PATH: &str = "../version.yml";
+
+pub fn info_command() -> Result<String> {
+    let file = File::open(INFO_PATH)?;
+    let reader = BufReader::new(file);
+
+    let mut version = String::new();
+    let mut created = String::new();
+
+    for line in reader.lines() {
+        let line = line?;
+        if line.starts_with("version:") {
+            if let Some(value) = line.splitn(2, ':').nth(1) {
+                version = value.trim().to_string();
+            }
+        }
+        if line.starts_with("created by") {
+            if let Some(value) = line.splitn(2, ':').nth(1) {
+                created = value.trim_start_matches(':').trim().to_string();
+            }
+        }
+    }
+
+    if !created.is_empty() && !version.is_empty() {
+        Ok(format!("{} : {}", created, version))
+    } else {
+        Ok("unknown".to_string())
+    }
+}
 
 #[derive(Clone, Default)]
 pub struct NoteFormat {
