@@ -117,6 +117,7 @@ Open TUI app.
 ```
 note tui
 ```
+On the first run, the build will run.
 
 ## License
 
