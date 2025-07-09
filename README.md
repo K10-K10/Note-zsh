@@ -9,30 +9,19 @@ Simple note-taking command line tool in Zsh + TUI written in Rust.
 
 ## Installation
 
-### 1. Clone the repo
-
-HTTPS
+### 1. Install via one-liner (recommended)
 
 ```sh
-git clone --depth=1 https://github.com/K10-K10/note-zsh.git
+curl -fsSL https://raw.githubusercontent.com/K10-K10/Note-zsh/v1.1.0/install.sh | zsh
 ```
 
-SSH
+This will:
 
-```sh
-git clone --depth=1 git@github.com:K10-K10/Note-zsh.git
-```
-
-### 2. Add to PATH
-
-Edit your `~/.zshrc` to include the path:
-
-```sh
-find ~/ -name Note-zsh # check the path
-
-echo 'export PATH="<path>:$PATH"' >> ~/.zshrc
-source ~/.zshrc
-```
+* Download the latest `Note-zsh.tar.gz`
+* Extract it to `~/.note-zsh`
+* Copy the binary to `~/.local/bin/note`
+* Add `note` to your `$PATH`
+* Setup automatic update every 7 days in `.zshrc`
 
 ---
 
@@ -57,12 +46,13 @@ note list
 | `note edit <number> <new title> <new body>` | Edit note                                           | `-t <new title>`, `-b <new body>`         |
 | `note tui`                                  | Launch TUI interface                                |                                           |
 | `note help`                                 | Show help message                                   |                                           |
+| `note --version`                            | Show version info                                   |                                           |
 
 ---
 
 ## TUI
 
-You can also run the interactive TUI interface with:
+Run the interactive TUI interface:
 
 ```sh
 note tui
@@ -105,19 +95,27 @@ $ note tui
 
 ---
 
-## Cargo (TUI)
+## Developer Guide (for TUI)
 
-Install rust,cargo adn ratatui.
-```zsh
-sudo apt install cargo
-cargo add ratatui
+If you want to build and run the Rust TUI manually:
+
+### Prerequisites
+
+Install `rustup`, `cargo`, and required libraries:
+
+```sh
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+sudo apt install libssl-dev pkg-config
 ```
 
-Open TUI app.
+### Build & Run
+
+```sh
+cd note-rust
+cargo run --release
 ```
-note tui
-```
-On the first run, the build will run.
+
+---
 
 ## License
 
