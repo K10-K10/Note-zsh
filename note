@@ -1,8 +1,14 @@
 #!/bin/zsh
 
-version="1.0.1"
+VERSION=$(grep version version.yml | cut -d '"' -f2)
+RELEASED=$(grep released version.yml | cut -d '"' -f2)
+CLEATED=$(grep by version.yml | cut -d ':' -f2)
+
 if [[ "$1" == "--version" || "$1" == "-v" ]]; then
-  echo "Note script version $version"
+  echo "Note script"
+  echo "version : $VERSION"
+  echo "released : $RELEASED"
+  echo "created by :$CLEATED"
   exit 0
 fi
 
