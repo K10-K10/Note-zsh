@@ -107,20 +107,16 @@ $ note tui
 
 ## Cargo (TUI)
 
-To build TUI manually:
-
-```sh
-cd note-rust
-cargo run --release
+Install rust,cargo adn ratatui.
+```zsh
+sudo apt install cargo
+cargo add ratatui
 ```
 
-Make sure you have `Rust` installed:
-
-```sh
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+Open TUI app.
 ```
-
----
+note tui
+```
 
 ## License
 
