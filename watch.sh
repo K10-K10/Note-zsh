@@ -3,7 +3,7 @@
 watch_dirs=("note" "note-rust")
 tar_name="Note-zsh.tar.gz"
 
-echo "Watching for changes in: ${watch_dirs[@]}..."
+echo " Watching for changes in: ${watch_dirs[@]}..."
 
 while true; do
   change=$(inotifywait -r -e modify,create,delete "${watch_dirs[@]}" 2>/dev/null)
@@ -16,8 +16,8 @@ while true; do
     continue
   fi
 
-  echo "📦 Creating archive $tar_name..."
-  tar czf "$tar_name" note note-rust note.txt update.sh
+  echo "Creating archive $tar_name..."
+  tar czf "$tar_name" note note-rust note.txt README.md images
 
-  echo "✅ Archive updated: $tar_name"
+  echo "Archive updated: $tar_name"
 done
