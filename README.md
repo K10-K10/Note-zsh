@@ -2,7 +2,7 @@
 
 Simple note-taking command line tool in Zsh + TUI written in Rust.
 
-> \[!NOTE]
+> [!NOTE]
 > CLI & TUI note-taking tool.
 
 ---
@@ -12,8 +12,10 @@ Simple note-taking command line tool in Zsh + TUI written in Rust.
 ### 1. Install via one-liner (recommended)
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/K10-K10/Note-zsh/v1.1.0/install.sh | zsh
+curl -fsSL https://github.com/K10-K10/Note-zsh/releases/latest/download/install.sh | zsh
 ```
+
+- The latest version is: v1.1.1
 
 This will:
 
