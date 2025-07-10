@@ -311,6 +311,7 @@ fn main() -> Result<()> {
                     &mut filter_result,
                     &mut filter_query,
                     &mut filter_popup_active,
+                    &mut action,
                 );
             }
         })?;

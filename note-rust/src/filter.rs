@@ -13,7 +13,9 @@ pub fn filter_command<'a>(
     filter_result: &mut Vec<ListItem<'a>>,
     query: &mut String,
     filter_popup_active: &mut bool,
+    action: &mut bool,
 ) {
+    *action = true;
     let area = note_title_input(60, f.area());
     let block = Block::default()
         .title("Filter notes")
@@ -36,6 +38,7 @@ pub fn filter_command<'a>(
                     )));
                 }
             }
+            *action = false;
             query.clear();
         }
         KeyCode::Backspace => {
@@ -45,6 +48,7 @@ pub fn filter_command<'a>(
             *filter_popup_active = false;
             filter_result.clear();
             query.clear();
+            *action = false;
         }
         KeyCode::Char(c) => {
             query.push(c);
