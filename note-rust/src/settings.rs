@@ -7,8 +7,8 @@ use std::{
     io::{BufRead, BufReader},
 };
 
-pub static FILE_PATH: &str = "../note.txt";
-static INFO_PATH: &str = "../version.yml";
+pub static FILE_PATH: &str = "note.txt";
+static INFO_PATH: &str = "version.yml";
 
 pub fn info_command() -> Result<String> {
     let file = File::open(INFO_PATH)?;
