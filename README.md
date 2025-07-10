@@ -15,7 +15,7 @@ Simple note-taking command line tool in Zsh + TUI written in Rust.
 curl -fsSL https://github.com/K10-K10/Note-zsh/releases/latest/download/install.sh | zsh
 ```
 
-- The latest version is: v1.1.1
+- The latest version is: v1.1.2
 
 This will:
 
