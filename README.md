@@ -11,6 +11,21 @@ Simple note-taking command line tool in Zsh + TUI written in Rust.
 
 ### 1. Install via one-liner (recommended)
 
+- Install Rust
+```sh
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source $HOME/.cargo/env
+```
+
+
+- Install system dependencies (Debian/Ubuntu):
+
+```sh
+sudo apt update
+sudo apt install -y libssl-dev pkg-config build-essential
+```
+
+- Install `Note-zsh`
 ```sh
 curl -fsSL https://github.com/K10-K10/Note-zsh/releases/latest/download/install.sh | zsh
 ```
@@ -19,7 +34,7 @@ curl -fsSL https://github.com/K10-K10/Note-zsh/releases/latest/download/install.
 
 This will:
 
-* Download the latest `Note-zsh.tar.gz`
+* Download the latest `Note-zsh.tar.gz`z
 * Extract it to `~/.note-zsh`
 * Copy the binary to `~/.local/bin/note`
 * Add `note` to your `$PATH`
