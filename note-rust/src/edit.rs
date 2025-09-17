@@ -179,7 +179,7 @@ pub fn edit_body_input(
                 notes[line_num].text = note.text.clone();
                 notes[line_num].body = note.body.clone();
 
-                let mut file = std::fs::OpenOptions::new().write(true).open(FILE_PATH)?;
+                let mut file = std::fs::OpenOptions::new().write(true).open(&*FILE_PATH)?;
                 let offset = (101 * line_num) as u64;
                 file.seek(std::io::SeekFrom::Start(offset))?;
                 let padded = format!("{:<100}\n", note.text);

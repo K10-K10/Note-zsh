@@ -510,11 +510,12 @@ dependencies = [
 
 [[package]]
 name = "note-rust"
-version = "0.1.0"
+version = "1.1.2"
 dependencies = [
  "chrono",
  "color-eyre",
  "crossterm 0.29.0",
+ "once_cell",
  "ratatui",
 ]
 

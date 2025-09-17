@@ -64,7 +64,7 @@ fn main() -> Result<()> {
     }
     let version = info_command().unwrap_or("unknown".to_string());
     let cmd_text = format!(
-    " {} | d : delete line | a : add note | e : edit | Enter : edit selected note | (q esc) : quit",
+    " {} | d : delete line | D : delete select line | a : add note | e : edit | Enter : edit selected note | (q esc) : quit",
     version
 );
 
@@ -107,6 +107,13 @@ fn main() -> Result<()> {
                     KeyCode::Char('q') => {
                         if !action {
                             break;
+                        } else {
+                            key_event = Some(key);
+                        }
+                    }
+                    KeyCode::Char('D') => {
+                        if !action {
+                            delete_popup_active = 2;
                         } else {
                             key_event = Some(key);
                         }

@@ -7,6 +7,47 @@ use ratatui::{
 };
 use std::io;
 
+pub fn delete_inline<'a>(
+    f: &mut Frame,
+    items: &mut Vec<ListItem<'a>>,
+    notes: &mut Vec<NoteFormat>,
+    list_state: &mut ListState,
+    key: KeyEvent,
+    action: &mut bool,
+    delete_popup_active: &mut i8,
+) -> io::Result<()> {
+    let area = note_title_input(60, f.area());
+    let delete_block = Block::default()
+        .title("Delete? (y/n)")
+        .border_type(BorderType::Rounded)
+        .borders(Borders::ALL);
+
+    f.render_widget(
+        Paragraph::new(Text::from("Delete selected note? y/N")).block(delete_block),
+        area,
+    );
+
+    match key.code {
+        KeyCode::Char('y') => {
+            if let Some(i) = list_state.selected() {
+                items.remove(i);
+                notes.remove(i);
+                list_state.select(Some(i.saturating_sub(1)));
+                save_notes(notes)?;
+            }
+            *delete_popup_active = 0;
+            *action = false;
+        }
+        KeyCode::Char('n') | KeyCode::Esc | KeyCode::Enter => {
+            *delete_popup_active = 0;
+            *action = false;
+        }
+        _ => {}
+    }
+
+    Ok(())
+}
+
 pub fn delete_command_check<'a>(
     f: &mut Frame,
     items: &mut Vec<ListItem<'a>>,

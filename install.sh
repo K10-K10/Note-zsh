@@ -3,16 +3,17 @@
 INSTALL_DIR="$HOME/.note-zsh"
 BIN_DIR="$HOME/.local/bin"
 ARCHIVE_URL="https://github.com/K10-K10/Note-zsh/releases/latest/download/Note-zsh.tar.gz"
+
 mkdir -p "$INSTALL_DIR" "$BIN_DIR"
 echo "Downloading Note-zsh..."
 curl -L "$ARCHIVE_URL" | tar -xz -C "$INSTALL_DIR"
-cp "$INSTALL_DIR/note-rust/target/release/note-rust" "$BIN_DIR/note"
+
+cp "$INSTALL_DIR/note" "$BIN_DIR/note"
 chmod +x "$BIN_DIR/note"
 
 ZSHRC="$HOME/.zshrc"
 PATH_LINE="export PATH=\"$BIN_DIR:\$PATH\""
 [[ ! -f $ZSHRC ]] && touch $ZSHRC
-
 if ! grep -q "$PATH_LINE" "$ZSHRC"; then
   echo "" >>"$ZSHRC"
   echo "# Note-zsh PATH addition" >>"$ZSHRC"
@@ -23,5 +24,12 @@ UPDATE_LINE="[[ \$(find $INSTALL_DIR/.last_update -mtime +6 2>/dev/null) ]] && $
 if ! grep -q "update.sh" "$ZSHRC"; then
   echo "$UPDATE_LINE" >>"$ZSHRC"
 fi
+
+touch "$INSTALL_DIR/note.txt"
+cat <<EOF >>"$INSTALL_DIR/version.yml"
+version: v1.1.2
+released: 07/11/2025
+creater by: K10-K10
+EOF
 
 echo "✅ Installed! Please restart your terminal."
