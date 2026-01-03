@@ -34,7 +34,7 @@ curl -fsSL https://github.com/K10-K10/Note-zsh/releases/latest/download/install.
 
 This will:
 
-* Download the latest `Note-zsh.tar.gz`z
+* Download the latest `Note-zsh.tar.gz`
 * Extract it to `~/.note-zsh`
 * Copy the binary to `~/.local/bin/note`
 * Add `note` to your `$PATH`
